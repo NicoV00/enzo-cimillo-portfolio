@@ -48,6 +48,10 @@ const SequentialGlitchText = ({
       // Clear current content
       textRef.current.innerHTML = '';
       
+      // Las letras van dentro de un wrapper por palabra (div, no span, para no
+      // entrar en querySelectorAll('span')) así la línea solo se corta en espacios
+      let wordWrap = null;
+
       // Create span for each character, keeping spaces intact
       text.split('').forEach((char, index) => {
         const span = document.createElement('span');
@@ -59,13 +63,22 @@ const SequentialGlitchText = ({
         if (char === ' ') {
           span.innerHTML = '&nbsp;';
           span.style.marginRight = '0.25em'; // Ensure visible spacing
+          wordWrap = null;
+          textRef.current.appendChild(span);
+          // Punto de corte permitido entre palabras
+          textRef.current.appendChild(document.createElement('wbr'));
         } else {
           span.style.display = 'inline-block';
           span.style.transition = 'transform 0.1s ease, scale 0.2s ease';
           span.style.transformOrigin = 'center';
+          if (!wordWrap) {
+            wordWrap = document.createElement('div');
+            wordWrap.style.display = 'inline-block';
+            wordWrap.style.whiteSpace = 'nowrap';
+            textRef.current.appendChild(wordWrap);
+          }
+          wordWrap.appendChild(span);
         }
-        
-        textRef.current.appendChild(span);
       });
     };
     

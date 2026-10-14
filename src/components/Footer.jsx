@@ -17,8 +17,12 @@ const FooterContainer = styled(Box)(({ theme }) => ({
   
   // Extra small screens
   '@media (max-width: 480px)': {
-    bottom: '3px',
-    right: '3px',
+    bottom: '14px',
+    right: '14px',
+    '& .MuiButton-root': {
+      padding: '9px 17px',
+      fontSize: '20px',
+    },
   }
 }));
 

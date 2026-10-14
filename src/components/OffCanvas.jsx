@@ -322,7 +322,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               height: '100%',
               bgcolor: 'black',
               color: 'white',
-              padding: isMobile ? '14px 24px 14px 14px' : isTablet ? '18px 26px 18px 18px' : '22px',
+              padding: isMobile ? '14px 12px' : isTablet ? '18px 26px 18px 18px' : '22px',
               display: 'flex',
               flexDirection: 'column',
               position: 'relative',
@@ -350,10 +350,10 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
               width: '100%', 
               display: 'flex', 
               flexDirection: 'column',
-              alignItems: 'flex-start',
+              alignItems: isMobile ? 'center' : 'flex-start',
               pt: { xs: '20px', sm: '24px', md: '10px' },
               pb: { xs: '20px', sm: '24px', md: '28px' },
-              px: '20px', // MISMO MARGEN QUE EL RESTO: 20px
+              px: isMobile ? '8px' : '20px', // MISMO MARGEN QUE EL RESTO: 20px
               marginBottom: isMobile ? '2.5rem' : '1.5rem'
             }}>
               <Typography
@@ -381,8 +381,9 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
               top: { md: '25rem' },
-              left: '20px', // MARGEN CONSISTENTE: 20px
-              right: '20px', // MARGEN CONSISTENTE: 20px
+              left: { md: '20px' },
+              right: { md: '20px' },
+              px: { xs: '8px', md: 0 },
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
@@ -393,7 +394,7 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
                 width: { xs: '100%', sm: '12rem' },
                 marginBottom: { xs: '1.2rem', sm: 0 },
                 marginRight: { sm: '2.5rem' },
-                paddingRight: { xs: '10px', sm: 0 },
+                paddingRight: 0,
                 whiteSpace: 'nowrap' // Forzar que no haya salto de línea
               }}>
                 <SequentialGlitchText
@@ -433,8 +434,9 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
               top: { md: '34rem' },
-              left: '20px', // MARGEN CONSISTENTE: 20px
-              right: '20px', // MARGEN CONSISTENTE: 20px
+              left: { md: '20px' },
+              right: { md: '20px' },
+              px: { xs: '8px', md: 0 },
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
@@ -492,8 +494,9 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
               bottom: { md: '8rem' },
-              left: '20px', // MARGEN CONSISTENTE: 20px
-              right: '20px', // MARGEN CONSISTENTE: 20px
+              left: { md: '20px' },
+              right: { md: '20px' },
+              px: { xs: '8px', md: 0 },
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',
@@ -623,8 +626,9 @@ const OffCanvas = ({ name, onShowChange, ...props }) => {
             <Box sx={{ 
               position: { xs: 'relative', md: 'absolute' },
               bottom: { md: '3rem' },
-              left: '20px', // MARGEN CONSISTENTE: 20px
-              right: '20px', // MARGEN CONSISTENTE: 20px
+              left: { md: '20px' },
+              right: { md: '20px' },
+              px: { xs: '8px', md: 0 },
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' }, 
               alignItems: 'flex-start',

@@ -6,6 +6,8 @@ import NavigationArrow from './NavigationArrow';
 import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 
 // Register GSAP plugins if needed
 if (typeof gsap.registerPlugin === 'function') {
@@ -189,6 +191,15 @@ const PasarelaGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   // Get theme for media queries
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -248,7 +259,7 @@ const PasarelaGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true, // Always use horizontal scrolling
     duration: 2.5,           // Increased duration for smoother motion
@@ -371,7 +382,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="0px"
         mobileHeight="85vh"
-      >
+      
+        onClick={() => handleImageClick(0)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[0]} alt="PASARELA 1" loading="eager" />
       </ImageItem>
 
@@ -388,7 +401,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="1140px"
         mobileHeight="68vh"
-      >
+      
+        onClick={() => handleImageClick(1)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[1]} alt="PASARELA 2" loading="lazy" />
       </ImageItem>
 
@@ -405,7 +420,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="32%"
         mobileLeft="1680px"
         mobileHeight="34vh"
-      >
+      
+        onClick={() => handleImageClick(2)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[2]} alt="PASARELA 3" loading="lazy" />
       </ImageItem>
 
@@ -422,7 +439,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="1860px"
         mobileHeight="72vh"
-      >
+      
+        onClick={() => handleImageClick(3)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[3]} alt="PASARELA 4" loading="lazy" />
       </ImageItem>
 
@@ -439,7 +458,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="2280px"
         mobileHeight="72vh"
-      >
+      
+        onClick={() => handleImageClick(4)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[4]} alt="PASARELA 5" loading="lazy" />
       </ImageItem>
 
@@ -456,7 +477,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="2580px"
         mobileHeight="60vh"
-      >
+      
+        onClick={() => handleImageClick(5)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[5]} alt="PASARELA 6" loading="lazy" />
       </ImageItem>
 
@@ -473,7 +496,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="52%"
         mobileLeft="2760px"
         mobileHeight="47vh"
-      >
+      
+        onClick={() => handleImageClick(6)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[6]} alt="PASARELA 7" loading="lazy" />
       </ImageItem>
 
@@ -490,7 +515,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="3300px"
         mobileHeight="60vh"
-      >
+      
+        onClick={() => handleImageClick(7)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[7]} alt="PASARELA 8" loading="lazy" />
       </ImageItem>
 
@@ -507,7 +534,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="3600px"
         mobileHeight="51vh"
-      >
+      
+        onClick={() => handleImageClick(8)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[8]} alt="PASARELA 9" loading="lazy" />
       </ImageItem>
 
@@ -524,7 +553,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="3600px"
         mobileHeight="60vh"
-      >
+      
+        onClick={() => handleImageClick(9)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[9]} alt="PASARELA 10" loading="lazy" />
       </ImageItem>
 
@@ -541,7 +572,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="3909px"
         mobileHeight="60vh"
-      >
+      
+        onClick={() => handleImageClick(10)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[10]} alt="PASARELA 11" loading="lazy" />
       </ImageItem>
 
@@ -558,7 +591,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="4440px"
         mobileHeight="85vh"
-      >
+      
+        onClick={() => handleImageClick(11)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[11]} alt="PASARELA 12 (PORTADA)" loading="lazy" />
       </ImageItem>
 
@@ -575,7 +610,9 @@ const PasarelaGallery = ({ onBack }) => {
         mobileTop="42%"
         mobileLeft="5100px"
         mobileHeight="72vh"
-      >
+      
+        onClick={() => handleImageClick(12)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images[12]} alt="PASARELA 13" loading="lazy" />
       </ImageItem>
     </>
@@ -584,6 +621,17 @@ const PasarelaGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
 
       {/* Loading screen component */}
       <GalleryLoadingScreen

@@ -1,3 +1,5 @@
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 'use client';
 
 // Importaciones necesarias
@@ -148,6 +150,15 @@ const VestimeTeoGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   const images = [
     '/images/TEO/webp/V1.webp', '/images/TEO/webp/V2.webp', '/images/TEO/webp/asd.webp',
     '/images/TEO/webp/V6.webp', '/images/TEO/webp/V8.webp', '/images/TEO/webp/V9.webp',
@@ -261,7 +272,7 @@ const VestimeTeoGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile: isMobileForScroll,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true,
     duration: 2.5,
@@ -412,6 +423,17 @@ const VestimeTeoGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
 
       {/* Loading screen component */}
       <GalleryLoadingScreen

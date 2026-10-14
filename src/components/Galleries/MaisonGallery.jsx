@@ -6,6 +6,8 @@ import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
 import InfinityLoader from './InfinityLoader';
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('maison');
@@ -265,17 +267,26 @@ const MaisonGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   // Images for MAISON - using the correct folder path
   const images = useMemo(() => ({
-    M1: '/images/MDLST/MDLST-1.png',
-    M2: '/images/MDLST/MDLST-2.png',
-    M3: '/images/MDLST/MDLST-3.png',
-    M4: '/images/MDLST/MDLST-4.png',
+    M1: '/images/MDLST/MDLST-1.webp',
+    M2: '/images/MDLST/MDLST-2.webp',
+    M3: '/images/MDLST/MDLST-3.webp',
+    M4: '/images/MDLST/MDLST-4.webp',
     M5: '/images/MDLST/MDLST-5.png',
     M6: '/images/MDLST/webp/MDLST-6.webp',
     M7: '/images/MDLST/webp/MDLST-7.webp',
     M8: '/images/MDLST/webp/MDLST-8.webp',
-    M9: '/images/MDLST/MDLST-9.mp4',
+    M9: '/images/MDLST/MDLST-9_opt.mp4',
     M10: '/images/MDLST/webp/MDLST-10.webp',
     M11: '/images/MDLST/webp/MDLST-11.webp',
     M12: '/images/MDLST/webp/MDLST-12.webp',
@@ -325,7 +336,7 @@ const MaisonGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress, lenis } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true, // Always use horizontal scrolling for both desktop and mobile
     duration: 2.5,           // Extended duration for smoother motion
@@ -489,7 +500,8 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        onClick={() => handleImageClick(0)}
+        sx={{ transform: 'translateY(-50%) translateZ(0)', cursor: 'pointer' }}
         // Ajustes específicos para móvil
         mobileTop="45%"
         mobileLeft="270px"
@@ -509,6 +521,8 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={3}
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
+        onClick={() => handleImageClick(1)}
+        sx={{ cursor: 'pointer' }}
         // Ajustes específicos para móvil
         mobileTop="25%"
         mobileLeft="780px"
@@ -527,6 +541,8 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
+        onClick={() => handleImageClick(2)}
+        sx={{ cursor: 'pointer' }}
         // Ajustes específicos para móvil
         mobileLeft="930px"
         mobileHeight="90vh"
@@ -545,7 +561,8 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={3}
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        onClick={() => handleImageClick(3)}
+        sx={{ transform: 'translateY(-50%) translateZ(0)', cursor: 'pointer' }}
         // Ajustes específicos para móvil
         mobileTop="35%"
         mobileLeft="1344px"
@@ -578,7 +595,8 @@ const MaisonGallery = ({ onBack }) => {
         mobileLeft="1266px"
         mobileHeight="108vh"
         mobileWidth="200vw" // Ancho relativo al viewport - aproximadamente 40% del ancho de pantalla (más grande por ser un fondo)
-      >
+      
+        onClick={() => handleImageClick(4)}>
         <Box component="img" src={images.M5} alt="MAISON 5" loading="eager" />
       </ImageItem>
 
@@ -592,13 +610,14 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2100px"
         mobileHeight="63vh"
         mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
-      >
+      
+        onClick={() => handleImageClick(5)}>
         <Box component="img" src={images.M6} alt="MAISON 6" loading="eager" />
       </ImageItem>
 
@@ -612,13 +631,14 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[6] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2472px"
         mobileHeight="63vh"
         mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
-      >
+      
+        onClick={() => handleImageClick(6)}>
         <Box component="img" src={images.M7} alt="MAISON 7" loading="eager" />
       </ImageItem>
 
@@ -632,13 +652,14 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2841px"
         mobileHeight="63vh"
         mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
-      >
+      
+        onClick={() => handleImageClick(7)}>
         <Box component="img" src={images.M8} alt="MAISON 8" loading="lazy" />
       </ImageItem>
 
@@ -652,7 +673,7 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[8] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="45%"
         mobileLeft="3336px"
@@ -680,13 +701,14 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[9] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="40%"
         mobileLeft="3804px"
         mobileHeight="49vh"
         mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
-      >
+      
+        onClick={() => handleImageClick(9)}>
         <Box component="img" src={images.M10} alt="MAISON 10" loading="lazy" />
       </ImageItem>
 
@@ -705,7 +727,9 @@ const MaisonGallery = ({ onBack }) => {
         mobileLeft="4212px"
         mobileHeight="49vh"
         mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
-      >
+      
+        onClick={() => handleImageClick(10)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images.M11} alt="MAISON 11" loading="lazy" />
       </ImageItem>
 
@@ -723,7 +747,9 @@ const MaisonGallery = ({ onBack }) => {
         mobileLeft="4800px"
         mobileHeight="72vh"
         mobileWidth="100vw" // Ancho relativo al viewport - aproximadamente 34% del ancho de pantalla
-      >
+      
+        onClick={() => handleImageClick(11)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={images.M12} alt="MAISON 12" loading="lazy" />
       </ImageItem>
 
@@ -737,13 +763,14 @@ const MaisonGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[12] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="5400px"
         mobileHeight="100%"
         mobileWidth="15%" // Ancho relativo al viewport - aproximadamente 38% del ancho de pantalla (imagen más importante)
-      >
+      
+        onClick={() => handleImageClick(12)}>
         <Box component="img" src={images.M13} alt="MAISON 13" loading="lazy" />
       </ImageItem>
     </>
@@ -752,6 +779,17 @@ const MaisonGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? Object.values(images)[centeredImage] : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
 
       {/* Loading screen component */}
       <GalleryLoadingScreen
@@ -770,7 +808,8 @@ const MaisonGallery = ({ onBack }) => {
         ref={progressBarRef}
         data-scroll-progress
         sx={{
-          opacity: loading ? 0 : 1
+          opacity: loading ? 0 : 1,
+        cursor: 'pointer',
         }}
       />
 

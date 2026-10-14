@@ -1,3 +1,5 @@
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
@@ -128,6 +130,15 @@ const IdentidadGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   // Get theme for media queries
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.down('xs'));
@@ -145,7 +156,7 @@ const IdentidadGallery = ({ onBack }) => {
     '/images/IDENTIDAD/webp/IDENTIDAD MUF-1 (PORTADA).webp',
     '/images/IDENTIDAD/webp/IDENTIDAD MUF-2.webp',
     '/images/IDENTIDAD/webp/IDENTIDAD MUF-3.webp',
-    '/images/IDENTIDAD/IDENTIDAD MUF-4.png',
+    '/images/IDENTIDAD/IDENTIDAD MUF-4.webp',
     '/images/IDENTIDAD/webp/IDENTIDAD MUF-5.webp',
     '/images/IDENTIDAD/webp/IDENTIDAD MUF-6.webp',
     '/images/IDENTIDAD/webp/IDENTIDAD MUF-7.webp',
@@ -280,7 +291,7 @@ const IdentidadGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true,
     duration: 2.5,
@@ -415,7 +426,9 @@ const IdentidadGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('IDENTIDAD1', activeBreakpoints).zIndex}
         isVisible={visibleImages[0] !== false}
-      >
+      
+        onClick={() => handleImageClick(0)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[0]}
@@ -426,6 +439,7 @@ const IdentidadGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('IDENTIDAD1', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -439,7 +453,9 @@ const IdentidadGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('IDENTIDAD2', activeBreakpoints).zIndex}
         isVisible={visibleImages[1] !== false}
-      >
+      
+        onClick={() => handleImageClick(1)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[1]}
@@ -450,6 +466,7 @@ const IdentidadGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('IDENTIDAD2', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -463,7 +480,9 @@ const IdentidadGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('IDENTIDAD3', activeBreakpoints).zIndex}
         isVisible={visibleImages[2] !== false}
-      >
+      
+        onClick={() => handleImageClick(2)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[2]}
@@ -474,6 +493,7 @@ const IdentidadGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('IDENTIDAD3', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -487,7 +507,9 @@ const IdentidadGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('IDENTIDAD4', activeBreakpoints).zIndex}
         isVisible={visibleImages[3] !== false}
-      >
+      
+        onClick={() => handleImageClick(3)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[3]}
@@ -498,6 +520,7 @@ const IdentidadGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('IDENTIDAD4', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -511,7 +534,9 @@ const IdentidadGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('IDENTIDAD5', activeBreakpoints).zIndex}
         isVisible={visibleImages[4] !== false}
-      >
+      
+        onClick={() => handleImageClick(4)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[4]}
@@ -522,6 +547,7 @@ const IdentidadGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('IDENTIDAD5', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -535,7 +561,9 @@ const IdentidadGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('IDENTIDAD6', activeBreakpoints).zIndex}
         isVisible={visibleImages[5] !== false}
-      >
+      
+        onClick={() => handleImageClick(5)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[5]}
@@ -546,6 +574,7 @@ const IdentidadGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('IDENTIDAD6', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -559,7 +588,9 @@ const IdentidadGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('IDENTIDAD7', activeBreakpoints).zIndex}
         isVisible={visibleImages[6] !== false}
-      >
+      
+        onClick={() => handleImageClick(6)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[6]}
@@ -570,6 +601,7 @@ const IdentidadGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('IDENTIDAD7', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -579,6 +611,17 @@ const IdentidadGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
 
       {/* Loading screen component */}
       <GalleryLoadingScreen
@@ -597,7 +640,8 @@ const IdentidadGallery = ({ onBack }) => {
         ref={progressBarRef}
         data-scroll-progress
         sx={{
-          opacity: loading ? 0 : 1
+          opacity: loading ? 0 : 1,
+        cursor: 'pointer',
         }}
       />
 

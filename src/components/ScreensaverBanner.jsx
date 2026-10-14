@@ -105,13 +105,13 @@ const TextSpan = styled('span')({
   display: "inline-block",
   
   "@media (max-width: 768px)": {
-    fontSize: "clamp(50px, 15vw, 180px)",
+    fontSize: "clamp(80px, 24vw, 240px)",
     marginRight: "40px",
     lineHeight: "1.1",
   },
   
   "@media (max-width: 480px)": {
-    fontSize: "clamp(45px, 22vw, 150px)",
+    fontSize: "clamp(70px, 32vw, 200px)",
     marginRight: "30px",
     lineHeight: "1.1",
   },

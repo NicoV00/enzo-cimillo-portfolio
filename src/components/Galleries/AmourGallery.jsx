@@ -1,3 +1,5 @@
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 'use client';
 
 // Importaciones necesarias
@@ -183,6 +185,15 @@ const AmourGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   // Get theme for media queries
   const theme = useTheme();
   // Definición de breakpoints
@@ -356,7 +367,7 @@ const AmourGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true, // Always use horizontal scrolling
     duration: 2.5,           // Increased duration for smoother motion
@@ -492,7 +503,9 @@ const AmourGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('AMOUR1', activeBreakpoints).zIndex}
         isVisible={visibleImages[0] !== false}
-      >
+      
+        onClick={() => handleImageClick(0)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[0]}
@@ -503,6 +516,7 @@ const AmourGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('AMOUR1', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -516,7 +530,9 @@ const AmourGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('AMOUR2', activeBreakpoints).zIndex}
         isVisible={visibleImages[1] !== false}
-      >
+      
+        onClick={() => handleImageClick(1)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[1]}
@@ -527,6 +543,7 @@ const AmourGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('AMOUR2', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -540,7 +557,9 @@ const AmourGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).zIndex}
         isVisible={visibleImages[2] !== false}
-      >
+      
+        onClick={() => handleImageClick(2)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[4]} /* Usando imagen 6 (índice 4 en el array) */
@@ -551,6 +570,7 @@ const AmourGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('AMOUR6_POSITION3', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -564,7 +584,9 @@ const AmourGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('AMOUR4', activeBreakpoints).zIndex}
         isVisible={visibleImages[3] !== false}
-      >
+      
+        onClick={() => handleImageClick(3)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[2]} /* Imagen 4 es índice 2 en array actualizado */
@@ -575,6 +597,7 @@ const AmourGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('AMOUR4', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -588,7 +611,9 @@ const AmourGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('AMOUR5', activeBreakpoints).zIndex}
         isVisible={visibleImages[4] !== false}
-      >
+      
+        onClick={() => handleImageClick(4)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[3]} /* Imagen 5 es índice 3 en array actualizado */
@@ -599,6 +624,7 @@ const AmourGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('AMOUR5', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -612,7 +638,9 @@ const AmourGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('AMOUR6', activeBreakpoints).zIndex}
         isVisible={visibleImages[5] !== false}
-      >
+      
+        onClick={() => handleImageClick(5)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[4]} /* Imagen 6 es índice 4 en array actualizado */
@@ -623,6 +651,7 @@ const AmourGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('AMOUR6', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -636,7 +665,9 @@ const AmourGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('AMOUR7', activeBreakpoints).zIndex}
         isVisible={visibleImages[6] !== false}
-      >
+      
+        onClick={() => handleImageClick(6)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[5]} /* Imagen 7 es índice 5 en array actualizado */
@@ -647,6 +678,7 @@ const AmourGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('AMOUR7', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -660,7 +692,9 @@ const AmourGallery = ({ onBack }) => {
         width="auto"
         zIndex={getCurrentStyles('AMOUR8', activeBreakpoints).zIndex}
         isVisible={visibleImages[7] !== false}
-      >
+      
+        onClick={() => handleImageClick(7)}
+        sx={{ cursor: 'pointer' }}>
         <Box
           component="img"
           src={images[6]} /* Imagen 8 es índice 6 en array actualizado */
@@ -671,6 +705,7 @@ const AmourGallery = ({ onBack }) => {
             width: "100%",
             height: "100%",
             maxWidth: getCurrentStyles('AMOUR8', activeBreakpoints).innerMaxWidth,
+          cursor: 'pointer',
           }}
         />
       </ImageItem>
@@ -680,6 +715,17 @@ const AmourGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
 
       {/* Loading screen component */}
       <GalleryLoadingScreen
@@ -698,7 +744,8 @@ const AmourGallery = ({ onBack }) => {
         ref={progressBarRef}
         data-scroll-progress
         sx={{
-          opacity: loading ? 0 : 1
+          opacity: loading ? 0 : 1,
+        cursor: 'pointer',
         }}
       />
 

@@ -187,6 +187,73 @@ const ProjectYear = styled(Box)({
   fontWeight: 'bold',
 });
 
+// Definido fuera de App para que React no remonte la galería en cada render de App
+const GalleryWrapper = ({ onBack, slugToImage }) => {
+  const { id } = useParams();
+
+  // Título de pestaña por proyecto (y se restaura al volver al carrusel)
+  useEffect(() => {
+    if (!id) return;
+    const prev = document.title;
+    const name = id.replace(/-/g, ' ');
+    document.title = `${name} — enzo cimillo`;
+    return () => { document.title = prev; };
+  }, [id]);
+
+  // Si no hay ID o queremos volver al carrusel
+  if (!id) return null;
+
+  const loadingComponent = (
+    <Box sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh'
+    }}>
+      <CircularProgress />
+    </Box>
+  );
+
+  switch (id) {
+    case "ana-livni":
+      return <Suspense fallback={loadingComponent}><AnaLivniGallery onBack={onBack} /></Suspense>;
+    case "blua":
+      return <Suspense fallback={loadingComponent}><BluaGallery onBack={onBack} /></Suspense>;
+    case "maison":
+      return <Suspense fallback={loadingComponent}><MaisonGallery onBack={onBack} /></Suspense>;
+    case "caldo":
+      return <Suspense fallback={loadingComponent}><CaldoGallery onBack={onBack} /></Suspense>;
+    case "vestimeteo":
+      return <Suspense fallback={loadingComponent}><VestimeTeoGallery onBack={onBack} /></Suspense>;
+    case "plata":
+      return <Suspense fallback={loadingComponent}><PlataGallery onBack={onBack} /></Suspense>;
+    case "lenoir":
+      return <Suspense fallback={loadingComponent}><LenoirGallery onBack={onBack} /></Suspense>;
+    case "kaboa":
+      return <Suspense fallback={loadingComponent}><KaboaGallery onBack={onBack} /></Suspense>;
+    case "amour":
+      return <Suspense fallback={loadingComponent}><AmourGallery onBack={onBack} /></Suspense>;
+    case "marcos":
+      return <Suspense fallback={loadingComponent}><MarcosGallery onBack={onBack} /></Suspense>;
+    case "pasarela":
+      return <Suspense fallback={loadingComponent}><PasarelaGallery onBack={onBack} /></Suspense>;
+    case "identidad":
+      return <Suspense fallback={loadingComponent}><IdentidadGallery onBack={onBack} /></Suspense>;
+    case "enzo":
+      return <Suspense fallback={loadingComponent}><EnzoGallery onBack={onBack} /></Suspense>;
+    default:
+      // Try to see if it's a "MyWay" collection
+      // Since we don't have the image path here, we might need to handle this differently
+      // but for now let's assume if it's not special, it's MyWay
+      return (
+        <MyWaySection
+          onBack={onBack}
+          collection={slugToImage[id] || id}
+        />
+      );
+  }
+};
+
 function App() {
   const photographerName = "enzo";
   const lettersRef = useRef([]);
@@ -219,6 +286,8 @@ function App() {
   // Estados para la transición
   const [initialTransition, setInitialTransition] = useState(false);
   const [transitionImageUrl, setTransitionImageUrl] = useState(null);
+  // Encuadre (px) de la portada en el último frame del video de intro
+  const [introRect, setIntroRect] = useState(null);
   const transitionInProgressRef = useRef(false);
   const [scene3DReady, setScene3DReady] = useState(false);
 
@@ -259,62 +328,6 @@ function App() {
 
   const navigate = useNavigate();
 
-  const GalleryWrapper = ({ onBack, setBgColor }) => {
-    const { id } = useParams();
-
-    // Si no hay ID o queremos volver al carrusel
-    if (!id) return null;
-
-    const loadingComponent = (
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh'
-      }}>
-        <CircularProgress />
-      </Box>
-    );
-
-    switch (id) {
-      case "ana-livni":
-        return <Suspense fallback={loadingComponent}><AnaLivniGallery onBack={onBack} /></Suspense>;
-      case "blua":
-        return <Suspense fallback={loadingComponent}><BluaGallery onBack={onBack} /></Suspense>;
-      case "maison":
-        return <Suspense fallback={loadingComponent}><MaisonGallery onBack={onBack} /></Suspense>;
-      case "caldo":
-        return <Suspense fallback={loadingComponent}><CaldoGallery onBack={onBack} /></Suspense>;
-      case "vestimeteo":
-        return <Suspense fallback={loadingComponent}><VestimeTeoGallery onBack={onBack} /></Suspense>;
-      case "plata":
-        return <Suspense fallback={loadingComponent}><PlataGallery onBack={onBack} /></Suspense>;
-      case "lenoir":
-        return <Suspense fallback={loadingComponent}><LenoirGallery onBack={onBack} /></Suspense>;
-      case "kaboa":
-        return <Suspense fallback={loadingComponent}><KaboaGallery onBack={onBack} /></Suspense>;
-      case "amour":
-        return <Suspense fallback={loadingComponent}><AmourGallery onBack={onBack} /></Suspense>;
-      case "marcos":
-        return <Suspense fallback={loadingComponent}><MarcosGallery onBack={onBack} /></Suspense>;
-      case "pasarela":
-        return <Suspense fallback={loadingComponent}><PasarelaGallery onBack={onBack} /></Suspense>;
-      case "identidad":
-        return <Suspense fallback={loadingComponent}><IdentidadGallery onBack={onBack} /></Suspense>;
-      case "enzo":
-        return <Suspense fallback={loadingComponent}><EnzoGallery onBack={onBack} /></Suspense>;
-      default:
-        // Try to see if it's a "MyWay" collection
-        // Since we don't have the image path here, we might need to handle this differently
-        // but for now let's assume if it's not special, it's MyWay
-        return (
-          <MyWaySection
-            onBack={onBack}
-            collection={slugToImage[id] || id}
-          />
-        );
-    }
-  };
 
   // NUEVO: Detectar cambios en el tamaño de ventana
   useEffect(() => {
@@ -438,7 +451,7 @@ function App() {
   }, []);
 
   // Handler optimizado para la transición sin retrasos
-  const handleIntroComplete = (finalImageUrl) => {
+  const handleIntroComplete = (finalImageUrl, rect) => {
     if (transitionInProgressRef.current) return;
     transitionInProgressRef.current = true;
 
@@ -447,14 +460,21 @@ function App() {
 
     console.log("Iniciando transición sin retrasos");
 
+    setIntroRect(rect || null);
     setTransitionImageUrl(finalImageUrl);
     setInitialTransition(true);
 
-
-    setTimeout(() => {
-      setShowIntro(false);
-    }, 300);
+    // Red de seguridad: si el carrusel no toma la posta, quitar la intro igual
+    setTimeout(() => setShowIntro(false), 2500);
   };
+
+  // El carrusel ya pintó la imagen 3D calzada sobre el último frame: quitar el video
+  // Fundido corto del video sobre la imagen 3D (mismo encuadre) en vez de corte seco
+  const [introFading, setIntroFading] = useState(false);
+  const handleIntroHandoff = useCallback(() => {
+    setIntroFading(true);
+    setTimeout(() => setShowIntro(false), 450);
+  }, []);
 
   // Callback instantáneo para cuando el carrusel está listo
   const handleCarouselReady = () => {
@@ -473,18 +493,22 @@ function App() {
     transitionInProgressRef.current = false;
   };
 
-  // Glitch effect - solo letras y números para mantener tamaño consistente
-  const glitchEffect = (element, text) => {
+  // Glitch effect - solo letras y números para mantener tamaño consistente.
+  // Una sola corrida por letra a la vez (sin acumular intervalos) y más pausado.
+  const glitchEffect = (element, text, delay = 0) => {
+    if (element.dataset.glitching === '1') return;
+    element.dataset.glitching = '1';
     const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
-    let interval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      element.innerText = characters[randomIndex];
-    }, 50);
-
     setTimeout(() => {
-      clearInterval(interval);
-      element.innerText = text;
-    }, 1000);
+      const interval = setInterval(() => {
+        element.textContent = characters[Math.floor(Math.random() * characters.length)];
+      }, 90);
+      setTimeout(() => {
+        clearInterval(interval);
+        element.textContent = text;
+        element.dataset.glitching = '0';
+      }, 500);
+    }, delay);
   };
 
   // Photographer name hover effect
@@ -494,16 +518,25 @@ function App() {
     const nameContainer = document.querySelector('.photographer-name');
     if (!nameContainer) return;
 
+    const isTouch = window.matchMedia('(hover: none)').matches;
+    let touchResetTimer = null;
+
     const handleMouseOver = () => {
       lettersRef.current.forEach((letter, index) => {
         if (!letter) return;
         letter.style.transitionDelay = `${index * 50}ms`;
         letter.style.color = '#00ff00';
         letter.style.textShadow = '0 0 2px rgba(0, 255, 0, 0.5), 0 0 3px rgba(0, 255, 0, 0.3)';
-        glitchEffect(letter, photographerName[index]);
+        glitchEffect(letter, photographerName[index], index * 80);
       });
 
       nameContainer.style.letterSpacing = '-1px';
+
+      // En táctil no hay "mouse out": volver al estado normal al terminar el glitch
+      if (isTouch) {
+        clearTimeout(touchResetTimer);
+        touchResetTimer = setTimeout(handleMouseOut, 500 + photographerName.length * 80 + 150);
+      }
     };
 
     const handleMouseOut = () => {
@@ -516,12 +549,14 @@ function App() {
       nameContainer.style.letterSpacing = '-2px';
     };
 
-    nameContainer.addEventListener('mouseover', handleMouseOver);
-    nameContainer.addEventListener('mouseout', handleMouseOut);
+    // mouseenter/mouseleave no se re-disparan al pasar entre letras
+    nameContainer.addEventListener('mouseenter', handleMouseOver);
+    nameContainer.addEventListener('mouseleave', handleMouseOut);
 
     return () => {
-      nameContainer.removeEventListener('mouseover', handleMouseOver);
-      nameContainer.removeEventListener('mouseout', handleMouseOut);
+      clearTimeout(touchResetTimer);
+      nameContainer.removeEventListener('mouseenter', handleMouseOver);
+      nameContainer.removeEventListener('mouseleave', handleMouseOut);
     };
   }, [showGallery, photographerName]);
 
@@ -577,6 +612,8 @@ function App() {
           setSelectedProjectInfo={handleProjectInfoChange}
           initialTransition={initialTransition}
           initialImageUrl={transitionImageUrl}
+          introRect={introRect}
+          onIntroHandoff={handleIntroHandoff}
           onTransitionComplete={handleTransitionComplete}
           onCarouselReady={handleCarouselReady}
           isUserInactive={isUserInactive}
@@ -615,7 +652,7 @@ function App() {
 
       {/* Mostrar IntroVideo solo mientras es necesario */}
       {showIntro && (
-        <IntroVideo onIntroComplete={handleIntroComplete} />
+        <IntroVideo onIntroComplete={handleIntroComplete} fading={introFading} />
       )}
 
       {/* Contenedor principal */}
@@ -662,7 +699,7 @@ function App() {
             </>
           } />
           <Route path="/gallery/:id" element={
-            <GalleryWrapper onBack={handleBackToCarousel} setBgColor={setBgColor} />
+            <GalleryWrapper onBack={handleBackToCarousel} slugToImage={slugToImage} />
           } />
         </Routes>
 

@@ -16,7 +16,7 @@ const VideoContainer = styled(Box)({
   overflow: 'hidden',
 });
 
-const Video = styled('video')(({ zoomScale }) => ({
+const Video = styled('video')({
   width: '100%',
   height: '100%',
   objectFit: 'cover',
@@ -24,46 +24,28 @@ const Video = styled('video')(({ zoomScale }) => ({
   top: 0,
   left: 0,
   zIndex: 0,
-  transform: `scale(${zoomScale})`,
-  transition: 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)',
-  transformOrigin: 'center center',
-}));
+});
 
-const FinalImage = styled('div')(({ opacity }) => ({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  backgroundImage: `url("./images/blua_constelaciones_finales.jpg")`,
-  backgroundSize: 'cover',
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'center',
-  opacity: opacity,
-  transition: 'opacity 0.3s ease-out',
-  zIndex: 1,
-  transform: 'scale(1)',
-  transformOrigin: 'center center',
-}));
+// Dónde está la portada (cover-01, cuadrada) dentro del último frame de cada video.
+// Medido por registro de imagen (SIFT) sobre el frame final; unidades = alto del frame.
+// side: lado de la portada, dx/dy: offset de su centro respecto al centro del frame.
+const LAST_FRAME_COVER = {
+  desktop: { side: 2.1628, dx: 0, dy: -0.1027 },
+  mobile: { side: 1.2167, dx: 0.0162, dy: -0.0683 },
+};
 
-function IntroVideo({ onIntroComplete }) {
+function IntroVideo({ onIntroComplete, fading = false }) {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const callbackFiredRef = useRef(false);
   const finalImageUrl = "./images/blua_constelaciones_finales.jpg";
   const videoLoadedRef = useRef(false);
   const videoEndedRef = useRef(false);
-  const zoomStartedRef = useRef(false);
   
   // Estados
-  const [imageOpacity, setImageOpacity] = useState(0);
   const [videoDuration, setVideoDuration] = useState(6);
   const [isMobile, setIsMobile] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
-  const [videoZoomScale, setVideoZoomScale] = useState(1); // Nuevo estado para el zoom
-  
-  // Configuración del zoom
-  const ZOOM_START_TIME = 2.0; // Segundos antes del final para empezar el zoom
   
   // DETECCIÓN MEJORADA DE MÓVIL
   useEffect(() => {
@@ -96,7 +78,7 @@ function IntroVideo({ onIntroComplete }) {
       setIsMobile(mobile);
       
       // Establecer URL del video inmediatamente
-      const newVideoUrl = mobile ? "/videos/entradaweb_vertical.mp4" : "/videos/ENTRADA_WEB2.2.mp4";
+      const newVideoUrl = mobile ? "/videos/entradaweb_vertical_opt.mp4" : "/videos/ENTRADA_WEB2.2_opt.mp4";
       setVideoUrl(newVideoUrl);
       
       console.log(`📱 DISPOSITIVO: ${mobile ? 'MÓVIL' : 'DESKTOP'}`);
@@ -125,13 +107,12 @@ function IntroVideo({ onIntroComplete }) {
   // Precargar la imagen final
   useEffect(() => {
     const img = new Image();
-    img.src = finalImageUrl;
+    img.src = "/images/covers/cover-01.webp";
     img.importance = "high";
     
     const safetyTimer = setTimeout(() => {
       if (!callbackFiredRef.current && !videoEndedRef.current && videoLoadedRef.current) {
         console.log("⚠️ Timer de seguridad activado");
-        setImageOpacity(1);
         triggerTransition();
       }
     }, (videoDuration + 5) * 1000);
@@ -180,30 +161,11 @@ function IntroVideo({ onIntroComplete }) {
       videoLoadedRef.current = true;
     };
     
-    const handleTimeUpdate = () => {
-      const currentTime = videoElement.currentTime;
-      const duration = videoElement.duration || 6;
-      const timeUntilEnd = duration - currentTime;
-      
-      // Aplicar zoom en los últimos frames - una sola vez
-      if (timeUntilEnd <= ZOOM_START_TIME && !zoomStartedRef.current) {
-        zoomStartedRef.current = true;
-        setVideoZoomScale(MAX_ZOOM_SCALE);
-        console.log(`🔍 Zoom iniciado: ${MAX_ZOOM_SCALE}x`);
-      }
-      
-      if (currentTime >= duration - 0.1) {
-        console.log("📹 Video cerca del final");
-      }
-    };
-    
     const handleEnded = () => {
       console.log(`✅ VIDEO TERMINADO - ${isMobile ? 'MÓVIL' : 'DESKTOP'}`);
       videoEndedRef.current = true;
-      setImageOpacity(1);
-      
       if (!callbackFiredRef.current) {
-        triggerTransition();
+        triggerTransition(getLastFrameRect());
       }
     };
     
@@ -211,7 +173,6 @@ function IntroVideo({ onIntroComplete }) {
       console.error(`❌ Error en video ${isMobile ? 'MÓVIL' : 'DESKTOP'}:`, e);
       if (videoLoadedRef.current && !videoEndedRef.current && !callbackFiredRef.current) {
         console.log("🚨 Activando transición de emergencia");
-        setImageOpacity(1);
         triggerTransition();
       }
     };
@@ -219,7 +180,6 @@ function IntroVideo({ onIntroComplete }) {
     // Registrar eventos
     videoElement.addEventListener('canplay', handleCanPlay);
     videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
-    videoElement.addEventListener('timeupdate', handleTimeUpdate);
     videoElement.addEventListener('ended', handleEnded);
     videoElement.addEventListener('error', handleError);
     
@@ -273,48 +233,45 @@ function IntroVideo({ onIntroComplete }) {
     return () => {
       videoElement.removeEventListener('canplay', handleCanPlay);
       videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      videoElement.removeEventListener('timeupdate', handleTimeUpdate);
       videoElement.removeEventListener('ended', handleEnded);
       videoElement.removeEventListener('error', handleError);
     };
   }, [videoUrl, isMobile]); // Depender de videoUrl e isMobile
   
-  // Función para manejar la transición final
-  const triggerTransition = () => {
+  // Rect en px (centro relativo al centro de la ventana) que ocupa la portada en
+  // el último frame, tal como se ve con object-fit: cover
+  const getLastFrameRect = () => {
+    const v = videoRef.current, box = containerRef.current;
+    if (!v || !box || !v.videoWidth) return null;
+    const cw = box.clientWidth, ch = box.clientHeight;
+    const k = Math.max(cw / v.videoWidth, ch / v.videoHeight);
+    const frameH = v.videoHeight * k;
+    const f = v.videoHeight > v.videoWidth ? LAST_FRAME_COVER.mobile : LAST_FRAME_COVER.desktop;
+    return { side: f.side * frameH, cx: f.dx * frameH, cy: f.dy * frameH, viewH: ch };
+  };
+
+  // El video queda congelado en su último frame; el carrusel pinta encima la
+  // imagen 3D en el mismo encuadre y recién ahí App desmonta la intro (sin fundido)
+  const triggerTransition = (rect = null) => {
     if (callbackFiredRef.current) return;
-    
     callbackFiredRef.current = true;
-    console.log(`🎬 Ejecutando transición final - ${isMobile ? 'MÓVIL' : 'DESKTOP'}`);
-    
-    setImageOpacity(1);
-    
+
     if (videoRef.current) {
       videoRef.current.pause();
     }
-    
+
     if (onIntroComplete) {
-      onIntroComplete(finalImageUrl);
+      onIntroComplete(finalImageUrl, rect);
     }
-    
-    setTimeout(() => {
-      if (containerRef.current) {
-        containerRef.current.style.transition = 'opacity 1.5s cubic-bezier(0.4, 0.0, 0.2, 1)';
-        containerRef.current.style.opacity = '0';
-      }
-    }, 50);
-    
-    setTimeout(() => {
-      if (containerRef.current) {
-        containerRef.current.style.display = 'none';
-      }
-    }, 1600);
   };
   
   return (
-    <VideoContainer ref={containerRef}>
+    <VideoContainer
+      ref={containerRef}
+      sx={{ opacity: fading ? 0 : 1, transition: 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)', pointerEvents: fading ? 'none' : 'auto' }}
+    >
       <Video
         ref={videoRef}
-        zoomScale={videoZoomScale}
         autoPlay
         muted
         playsInline
@@ -327,8 +284,6 @@ function IntroVideo({ onIntroComplete }) {
         {/* Fallback si no carga */}
         Tu navegador no soporta videos.
       </Video>
-      
-      <FinalImage opacity={imageOpacity} />
     </VideoContainer>
   );
 }

@@ -1,3 +1,5 @@
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 'use client';
 
 // Importaciones necesarias
@@ -175,6 +177,15 @@ const MarcosGallery = ({ onBack }) => {
   const progressBarRef = useRef(null);
   const containerRef = useRef(null);
   const imageRefs = useRef([]);
+
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
 
   // Imágenes para la galería
   const images = useMemo(() => [
@@ -378,7 +389,7 @@ const MarcosGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true,
     duration: 2.5,
@@ -537,6 +548,7 @@ const MarcosGallery = ({ onBack }) => {
               width: "100%",
               height: "100%",
               maxWidth: styles.innerMaxWidth,
+            cursor: 'pointer',
             }}
           />
         </ImageItem>
@@ -547,6 +559,17 @@ const MarcosGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
 
       {/* Loading screen component */}
       <GalleryLoadingScreen
@@ -565,7 +588,8 @@ const MarcosGallery = ({ onBack }) => {
         ref={progressBarRef}
         data-scroll-progress
         sx={{
-          opacity: loading ? 0 : 1
+          opacity: loading ? 0 : 1,
+        cursor: 'pointer',
         }}
       />
 

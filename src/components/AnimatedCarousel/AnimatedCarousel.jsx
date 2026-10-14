@@ -1,9 +1,37 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import * as THREE from 'three';
-import { useLoader, useFrame } from '@react-three/fiber';
+import { optimizedCover } from "../utils/coverImages";
+import { useLoader, useFrame, useThree } from '@react-three/fiber';
 import { gsap } from 'gsap';
 import ImageMesh from './ImageMesh';
 import { getGalleryColors } from '../utils/galleryColors';
+
+// Mueve la cámara en órbita alrededor del origen (interpola distancia y ángulos)
+// en vez de en línea recta: así el encuadre no hace barridos raros al ir/volver
+const tweenCameraOrbit = (timeline, camera, to, vars, position = 0) => {
+  const from = new THREE.Spherical().setFromVector3(camera.position);
+  const end = new THREE.Spherical().setFromVector3(new THREE.Vector3(to.x, to.y, to.z));
+  // camino angular más corto
+  let dTheta = end.theta - from.theta;
+  if (dTheta > Math.PI) dTheta -= Math.PI * 2;
+  if (dTheta < -Math.PI) dTheta += Math.PI * 2;
+  const state = { t: 0 };
+  const tmp = new THREE.Spherical();
+  return timeline.to(state, {
+    t: 1,
+    ...vars,
+    onUpdate: () => {
+      const k = state.t;
+      tmp.set(
+        from.radius + (end.radius - from.radius) * k,
+        from.phi + (end.phi - from.phi) * k,
+        from.theta + dTheta * k
+      );
+      camera.position.setFromSpherical(tmp);
+      camera.lookAt(0, 0, 0);
+    },
+  }, position);
+};
 
 const checkIsMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
@@ -20,6 +48,8 @@ const AnimatedCarousel = ({
   initialTransition = false,
   initialImageUrl = null,
   onTransitionComplete = null,
+  introRect = null,
+  onIntroHandoff = null,
   isUserInactive = false
 }) => {
   // MOBILE DETECTION
@@ -85,7 +115,7 @@ const AnimatedCarousel = ({
   // TEXTURE LOADING OPTIMIZATION
   const textures = useLoader(
     THREE.TextureLoader,
-    imageUrls,
+    imageUrls.map(optimizedCover),
     (loader) => {
       loader.setCrossOrigin('anonymous');
     }
@@ -131,7 +161,7 @@ const AnimatedCarousel = ({
   const originalPositions = useMemo(() => {
     const desktopPositions = [
       [-4.5, -4.5, 4],
-      [0, 2, 14],
+      [0, 0, 14], // imagen de la intro: centrada, así llega sin inclinarse (lookAt = sin rotación)
       [14, 4, -18],
       [1, 3, -13],
       [17, 3, 1],
@@ -144,7 +174,7 @@ const AnimatedCarousel = ({
       [9.5, 5.5, 7],
       [-13, 7, 0],
       [8, 9.5, -8],
-      [2, -4, 12]  // Nueva posición para la imagen de ex- (más a la derecha)
+      [2.5, -5.5, 12]  // ex-: más abajo para no quedar detrás de la imagen central
     ];
 
     // Scale down positions for mobile
@@ -166,6 +196,12 @@ const AnimatedCarousel = ({
   const [selectedImage, setSelectedImage] = useState([]);
   const [isImageUpFront, setIsImageUpFront] = useState(false);
   const cameraRef = useRef();
+  const controls = useThree((state) => state.controls);
+
+  // Sin zoom in/out mientras una imagen está seleccionada al frente
+  useEffect(() => {
+    if (controls) controls.enableZoom = !isImageUpFront;
+  }, [controls, isImageUpFront]);
   const raycaster = useRef(new THREE.Raycaster()).current;
   const mouse = useRef(new THREE.Vector2()).current;
   const [loadedIndices, setLoadedIndices] = useState([]);
@@ -216,11 +252,6 @@ const AnimatedCarousel = ({
               ref.current.material.transparent = true;
               ref.current.material.opacity = 0;
             }
-          } else {
-            if (ref.current.material) {
-              ref.current.material.transparent = true;
-              ref.current.material.opacity = 0;
-            }
           }
         }
       });
@@ -231,15 +262,30 @@ const AnimatedCarousel = ({
       if (targetRef && camera) {
         const finalPosition = [...originalPositions[initialImageIndex]];
 
+        // El carrusel estuvo girando detrás del video (~15° al terminar la intro):
+        // sin esto la imagen viaja rotada y llega corrida del centro
+        if (groupRef.current) groupRef.current.rotation.set(0, 0, 0);
+
         camera.position.set(0, 0, 6);
         camera.lookAt(0, 0, 0);
+        camera.updateMatrixWorld();
 
-        targetRef.position.set(0, 0, 0);
-        targetRef.scale.set(6, 6, 6);
+        // Pose inicial calzada sobre el último frame del video (mismo tamaño y
+        // posición en pantalla), así el corte video → 3D es invisible
+        const viewH = introRect?.viewH || window.innerHeight;
+        const worldPerPx = (2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / viewH;
+        const planeH = targetRef.children[0]?.geometry?.parameters?.height || (isMobile ? 3.2 : 5);
+        const rect = introRect || { side: Math.max(window.innerWidth, viewH), cx: 0, cy: 0 };
+        const startScale = (rect.side * worldPerPx) / planeH;
+
+        targetRef.position.set(rect.cx * worldPerPx, -rect.cy * worldPerPx, 0);
+        targetRef.rotation.set(0, 0, 0);
+        targetRef.scale.set(startScale, startScale, startScale);
 
         // SIMPLIFIED ANIMATION FOR MOBILE
         const duration = isMobile ? 1.2 : 1.8;
         const timeline = gsap.timeline({
+          paused: true,
           onComplete: () => {
             gsap.set(targetRef.position, {
               x: finalPosition[0],
@@ -280,24 +326,14 @@ const AnimatedCarousel = ({
           y: finalPosition[1],
           z: finalPosition[2],
           duration: duration,
-          ease: isMobile ? "power2.inOut" : "power3.inOut",
-          onUpdate: isMobile ? null : () => {
-            if (targetRef) {
-              targetRef.lookAt(camera.position);
-            }
-          }
+          ease: isMobile ? "power2.inOut" : "power3.inOut"
+          // Sin lookAt: girar hacia la cámara en el primer frame producía un tirón
         }, 0);
 
         timeline.to(targetRef.scale, {
           x: 1,
           y: 1,
           z: 1,
-          duration: duration,
-          ease: isMobile ? "power2.inOut" : "power3.inOut"
-        }, 0);
-
-        timeline.to(targetRef.material, {
-          opacity: 1,
           duration: duration,
           ease: isMobile ? "power2.inOut" : "power3.inOut"
         }, 0);
@@ -350,9 +386,18 @@ const AnimatedCarousel = ({
             }
           });
         }, [], 1.0);
+
+        // Esperar a que el frame con la pose inicial se pinte detrás del video,
+        // quitar la intro y recién ahí arrancar el viaje hacia el círculo
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          if (onIntroHandoff) onIntroHandoff();
+          // El video se funde (INTRO_FADE_MS en App) sobre la imagen 3D quieta;
+          // el viaje arranca recién cuando el fundido terminó
+          setTimeout(() => timeline.play(), 420);
+        }));
       }
     }
-  }, [initialTransition, initialImageIndex, refs, originalPositions, onTransitionComplete, isMobile]);
+  }, [initialTransition, initialImageIndex, refs, originalPositions, onTransitionComplete, isMobile, introRect, onIntroHandoff]);
 
   // Quality change handler removed - always high quality
 
@@ -382,10 +427,14 @@ const AnimatedCarousel = ({
         const newColor = new THREE.Color("white");
         backgroundRef.current = newColor;
       }
+    } else if (isMobile) {
+      // Mobile: tocar la imagen seleccionada abre el proyecto
+      setShowCollection(true);
+      setCollection(imageUrls[index]);
     } else {
       resetImagePositions();
     }
-  }, [selectedImage, isInitializing, imageUrls]);
+  }, [selectedImage, isInitializing, imageUrls, isMobile]);
 
   const animateImageToFront = useCallback((index) => {
     // Keep original animation logic unchanged
@@ -426,19 +475,21 @@ const AnimatedCarousel = ({
     const direction = new THREE.Vector3();
     camera.getWorldDirection(direction);
 
-    const cameraDistanceToOrigin = camera.position.length();
-
-    console.log(`Camera distance to origin: ${cameraDistanceToOrigin}`);
-
-    var zoomRatio = 0.87;
-    if (cameraDistanceToOrigin > 80) {
-      zoomRatio = 0.94;
-    } else if (cameraDistanceToOrigin > 150) {
-      zoomRatio = 1.1;
-    }
-
-    const zoomDistance = cameraDistanceToOrigin * zoomRatio;
-    const targetPosition = camera.position.clone().add(direction.multiplyScalar(zoomDistance));
+    // Distancia fija: la imagen seleccionada siempre ocupa el mismo tamaño en pantalla
+    const plane = selectedRef.children[0];
+    const params = plane?.geometry?.parameters || {};
+    const planeScale = 1.05; // escala aplicada al seleccionar (ImageMesh)
+    const planeH = (params.height || (isMobile ? 3.2 : 5)) * planeScale;
+    const planeW = (params.width || planeH) * planeScale;
+    const tanHalf = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const fitH = isMobile ? 0.5 : 0.75;  // fracción máx. del alto de pantalla
+    const fitW = isMobile ? 0.7 : 0.6;   // fracción máx. del ancho de pantalla
+    const fixedDistance = Math.max(
+      planeH / (fitH * 2 * tanHalf),
+      planeW / (fitW * 2 * tanHalf * camera.aspect)
+    );
+    // La imagen va al origen; la cámara queda a distancia fija en su dirección actual
+    const targetPosition = direction.clone().multiplyScalar(-fixedDistance);
 
     // Keep original smooth animation
     timelineRef.current.to(selectedRef.position, {
@@ -455,13 +506,9 @@ const AnimatedCarousel = ({
       }
     }, 0);
 
-    timelineRef.current.to(camera.position, {
-      x: targetPosition.x,
-      y: targetPosition.y,
-      z: targetPosition.z,
+    tweenCameraOrbit(timelineRef.current, camera, targetPosition, {
       duration: 1.4,
-      ease: "power3.inOut",
-      force3D: true
+      ease: "power3.inOut"
     }, 0);
 
     // Keep original dispersion animation
@@ -600,18 +647,33 @@ const AnimatedCarousel = ({
       }
     });
 
-    timelineRef.current.to(camera.position, {
-      x: 0,
-      y: 0,
-      z: 45,
+    tweenCameraOrbit(timelineRef.current, camera, { x: 0, y: 0, z: 45 }, {
       duration: duration,
-      ease: isMobile ? "power2.inOut" : "power3.inOut",
-      force3D: !isMobile
+      ease: isMobile ? "power2.inOut" : "power3.inOut"
     }, 0);
+
+    const selectedIdx = selectedImage[selectedImage.length - 1];
 
     refs.forEach((ref, index) => {
       if (ref.current) {
         ref.current.visible = true;
+
+        // La imagen que estaba al frente vuelve en sincronía exacta con la cámara
+        // (misma duración, curva y sin retraso): ida y vuelta simétricas
+        if (index === selectedIdx) {
+          const targetPos = originalPositions[index];
+          timelineRef.current.to(ref.current.position, {
+            x: targetPos[0],
+            y: targetPos[1],
+            z: targetPos[2],
+            duration: duration,
+            ease: isMobile ? "power2.inOut" : "power3.inOut",
+            onUpdate: () => {
+              if (ref.current) ref.current.lookAt(camera.position);
+            }
+          }, 0);
+          return;
+        }
 
         const currentPos = ref.current.position;
         const targetPos = originalPositions[index];
@@ -644,7 +706,7 @@ const AnimatedCarousel = ({
     });
 
     timelineRef.current.play();
-  }, [refs, originalPositions, isMobile]);
+  }, [refs, originalPositions, isMobile, selectedImage]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -672,7 +734,7 @@ const AnimatedCarousel = ({
       const selectedRef = refs[selectedImageIndex]?.current;
       if (!selectedRef || !selectedRef.visible) return;
 
-      const intersects = raycaster.intersectObject(selectedRef, false);
+      const intersects = raycaster.intersectObject(selectedRef, true); // recursivo: el plano es hijo del group
 
       // If no intersection with the selected image, reset positions
       if (intersects.length === 0) {
@@ -750,6 +812,8 @@ const AnimatedCarousel = ({
           onClick={() => handleClick(index)}
           isHighQuality={isHighQuality}
           isSelected={selectedImage.includes(index)}
+          hoverDisabled={isInitializing}
+          isMobile={isMobile}
           onGalleryToggle={() => {
             setShowCollection(true);
             setCollection(imageUrls[index]);

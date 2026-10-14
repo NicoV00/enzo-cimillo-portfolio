@@ -4,7 +4,9 @@ import { styled, useTheme } from '@mui/material/styles';
 import NavigationArrow from './NavigationArrow'; // Assuming this component exists
 import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll'; // Assuming this hook exists
-import { getGalleryColors } from '../utils/galleryColors'; // Assuming this utility exists
+import { getGalleryColors } from '../utils/galleryColors';
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay'; // Assuming this utility exists
 
 // Register GSAP plugins if needed (kept as is)
 if (typeof window !== 'undefined' && typeof require === 'function') {
@@ -294,6 +296,15 @@ const KaboaGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   const content = useMemo(() => ({
     FRAME: '/images/KABOA/KABOA-7 MARCO.png',
     K1: '/images/KABOA/webp/KABOA-1.webp',
@@ -302,7 +313,7 @@ const KaboaGallery = ({ onBack }) => {
     K4: '/images/KABOA/webp/KABOA-4.webp',
     K5: '/images/KABOA/webp/KABOA-5.webp',
     K6: '/images/KABOA/webp/KABOA-6.webp',
-    K7: '/images/KABOA/KABOA-7.mp4',
+    K7: '/images/KABOA/KABOA-7_opt.mp4',
     K8: '/images/KABOA/webp/KABOA-8.webp',
     K9: '/images/KABOA/webp/KABOA-9.webp',
   }), []);
@@ -352,7 +363,7 @@ const KaboaGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress, lenis } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true, // Always use horizontal scrolling
     duration: 2.5,           // Extended duration for smoother motion
@@ -485,7 +496,9 @@ const KaboaGallery = ({ onBack }) => {
         top="50%" left="450px" height="80vh" width="auto" zIndex={2}
         isVisible={visibleImages[0] !== false}
         mobileTop="45%" mobileLeft="270px" mobileHeight="75vh" mobileWidth="85vw"
-      >
+      
+        onClick={() => handleImageClick(0)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={content.K1} alt="KABOA 1" loading="eager" />
       </ImageItem>
 
@@ -495,7 +508,9 @@ const KaboaGallery = ({ onBack }) => {
         top="50%" left="1400px" height="85vh" width="auto" zIndex={2}
         isVisible={visibleImages[1] !== false}
         mobileTop="45%" mobileLeft="840px" mobileHeight="75vh" mobileWidth="85vw"
-      >
+      
+        onClick={() => handleImageClick(1)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={content.K2} alt="KABOA 2" loading="lazy" />
       </ImageItem>
 
@@ -505,7 +520,9 @@ const KaboaGallery = ({ onBack }) => {
         top="33%" left="2100px" height="45vh" width="auto" zIndex={2}
         isVisible={visibleImages[2] !== false}
         mobileTop="33%" mobileLeft="1260px" mobileHeight="40vh" mobileWidth="65vw"
-      >
+      
+        onClick={() => handleImageClick(2)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={content.K3} alt="KABOA 3" loading="lazy" />
       </ImageItem>
 
@@ -515,7 +532,9 @@ const KaboaGallery = ({ onBack }) => {
         top="50%" left="2700px" height="80vh" width="auto" zIndex={2}
         isVisible={visibleImages[3] !== false}
         mobileTop="45%" mobileLeft="1620px" mobileHeight="75vh" mobileWidth="85vw"
-      >
+      
+        onClick={() => handleImageClick(3)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={content.K4} alt="KABOA 4" loading="lazy" />
       </ImageItem>
 
@@ -525,7 +544,9 @@ const KaboaGallery = ({ onBack }) => {
         top="50%" left="3500px" height="80vh" width="auto" zIndex={2}
         isVisible={visibleImages[4] !== false}
         mobileTop="45%" mobileLeft="2100px" mobileHeight="75vh" mobileWidth="180vw"
-      >
+      
+        onClick={() => handleImageClick(4)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={content.K5} alt="KABOA 5" loading="lazy" />
       </ImageItem>
 
@@ -535,7 +556,9 @@ const KaboaGallery = ({ onBack }) => {
         top="42%" left="4450px" height="70vh" width="auto" zIndex={2}
         isVisible={visibleImages[5] !== false}
         mobileTop="42%" mobileLeft="2670px" mobileHeight="63vh" mobileWidth="85vw"
-      >
+      
+        onClick={() => handleImageClick(5)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={content.K6} alt="KABOA 6" loading="lazy" />
       </ImageItem>
 
@@ -563,7 +586,9 @@ const KaboaGallery = ({ onBack }) => {
         top="50%" left="6200px" height="80vh" width="auto" zIndex={2}
         isVisible={visibleImages[7] !== false}
         mobileTop="45%" mobileLeft="3720px" mobileHeight="72vh" mobileWidth="85vw"
-      >
+      
+        onClick={() => handleImageClick(7)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={content.K8} alt="KABOA 8" loading="lazy" />
       </ImageItem>
 
@@ -573,7 +598,9 @@ const KaboaGallery = ({ onBack }) => {
         top="50%" left="7100px" height="80vh" width="auto" zIndex={2}
         isVisible={visibleImages[8] !== false}
         mobileTop="35%" mobileLeft="4140px" mobileHeight="67vh" mobileWidth="180vw"
-      >
+      
+        onClick={() => handleImageClick(8)}
+        sx={{ cursor: 'pointer' }}>
         <Box component="img" src={content.K9} alt="KABOA 9" loading="lazy" />
       </ImageItem>
     </>
@@ -582,6 +609,17 @@ const KaboaGallery = ({ onBack }) => {
   return (
     <>
       <MediumFontStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
       <MyriadFontStyle />
 
       {/* Loading screen component */}

@@ -4,7 +4,9 @@ import { styled } from '@mui/material/styles';
 import NavigationArrow from './NavigationArrow'; // Assuming this path is correct
 import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll'; // Assuming this path is correct
-import { getGalleryColors } from '../utils/galleryColors'; // Assuming this path is correct
+import { getGalleryColors } from '../utils/galleryColors';
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay'; // Assuming this path is correct
 
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('ana-livni');
@@ -119,6 +121,15 @@ const AnaLivniGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   const images = useMemo(() => ({
     L1: '/images/ANA/webp/L1.webp',
     L2: '/images/ANA/webp/L3.webp', // ANA text
@@ -169,7 +180,7 @@ const AnaLivniGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile, // This can still be used by useSmoothScroll for different physics if needed
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true,
     duration: 2.5,
@@ -269,13 +280,13 @@ const AnaLivniGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[0] = { current: el }} // Ensure ref structure compatibility
         top="50%"
-        left={`${(450 / TOTAL_CONTENT_WIDTH) * 100}%`} // 6%
+        left={`${((isMobile ? 200 : 450) / TOTAL_CONTENT_WIDTH) * 100}%`} // mobile: asoma en pantalla para invitar a scrollear
         height="85vh"
         // width prop intentionally omitted to let aspect ratio determine it
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile} // Prop can still be passed if ImageItem uses it internally
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
       >
         <Box component="img" src={images.L1} alt="ANA LIVNI 1" loading="eager" />
       </ImageItem>
@@ -298,8 +309,8 @@ const AnaLivniGallery = ({ onBack }) => {
           backfaceVisibility: 'hidden',
         }}
       >
-        <Box component="img" src={images.L2} alt="ANA" sx={{ width: '100%', marginBottom: '5px' }} loading="eager" />
-        <Box component="img" src={images.L3} alt="LIVNI" sx={{ width: '100%' }} loading="eager" />
+        <Box component="img" src={images.L2} alt="ANA" sx={{ width: '100%', marginBottom: '5px' , cursor: 'pointer'}} loading="eager" />
+        <Box component="img" src={images.L3} alt="LIVNI" sx={{ width: '100%' , cursor: 'pointer'}} loading="eager" />
       </Box>
 
       <ImageItem
@@ -334,7 +345,7 @@ const AnaLivniGallery = ({ onBack }) => {
         zIndex={1}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
       >
         <Box component="img" src={images.L6} alt="ANA LIVNI 6" loading="eager" />
       </ImageItem>
@@ -347,7 +358,7 @@ const AnaLivniGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
       >
         <Box component="img" src={images.L7} alt="ANA LIVNI 7" loading="eager" />
       </ImageItem>
@@ -360,7 +371,7 @@ const AnaLivniGallery = ({ onBack }) => {
         zIndex={1}
         isVisible={visibleImages[6] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
       >
         <Box component="img" src={images.L8} alt="ANA LIVNI 8" loading="eager" />
       </ImageItem>
@@ -373,7 +384,7 @@ const AnaLivniGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
       >
         <Box component="img" src={images.L9} alt="ANA LIVNI 9" loading="lazy" />
       </ImageItem>
@@ -386,7 +397,7 @@ const AnaLivniGallery = ({ onBack }) => {
         zIndex={3}
         isVisible={visibleImages[8] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
       >
         <Box component="img" src={images.L10} alt="ANA LIVNI 10" loading="lazy" />
       </ImageItem>
@@ -399,7 +410,7 @@ const AnaLivniGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[9] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
       >
         <Box component="img" src={images.L11} alt="ANA LIVNI 11" loading="lazy" />
       </ImageItem>
@@ -412,7 +423,7 @@ const AnaLivniGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[10] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
       >
         <Box component="img" src={images.L12} alt="ANA LIVNI 12" loading="lazy" />
       </ImageItem>
@@ -425,7 +436,7 @@ const AnaLivniGallery = ({ onBack }) => {
         zIndex={1}
         isVisible={visibleImages[11] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
       >
         <Box component="img" src={images.L13} alt="ANA LIVNI 13" loading="lazy" />
       </ImageItem>
@@ -435,6 +446,17 @@ const AnaLivniGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
 
       {/* Loading screen component */}
       <GalleryLoadingScreen

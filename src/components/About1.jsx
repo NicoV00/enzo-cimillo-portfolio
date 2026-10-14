@@ -11,6 +11,8 @@ const About1 = ({
   setSelectedProjectInfo, // NUEVA PROP para la información del proyecto
   initialTransition = false,
   initialImageUrl = null,
+  introRect = null,
+  onIntroHandoff = null,
   onTransitionComplete = null,
   onCarouselReady = null,
   isUserInactive = false // NUEVA PROP: estado de inactividad del usuario
@@ -42,6 +44,7 @@ const About1 = ({
       
       {/* OrbitControls desactivados durante la transición */}
       <OrbitControls
+        makeDefault
         enabled={!initialTransition}
         minPolarAngle={Math.PI / 4}
         maxPolarAngle={(3 * Math.PI) / 4}
@@ -57,6 +60,8 @@ const About1 = ({
         // Pasar los props de transición
         initialTransition={initialTransition}
         initialImageUrl={initialImageUrl}
+        introRect={introRect}
+        onIntroHandoff={onIntroHandoff}
         onTransitionComplete={onTransitionComplete}
         // NUEVA PROP: pasar estado de inactividad al carrusel
         isUserInactive={isUserInactive}

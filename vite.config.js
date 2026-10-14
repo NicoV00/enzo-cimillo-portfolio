@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import viteCompression from 'vite-plugin-compression'
-import legacy from '@vitejs/plugin-legacy'
 
 export default defineConfig({
   plugins: [
@@ -13,28 +12,17 @@ export default defineConfig({
       threshold: 10240, // Comprimir archivos mayores a 10kb
       algorithm: 'gzip',
       ext: '.gz',
-    }),
-    // Soporte para navegadores antiguos
-    legacy({
-      targets: ['defaults', 'not IE 11'],
-      modernPolyfills: true,
     })
   ],
-  server: {
-    host: true,  // Allows access from any network (0.0.0.0)
-    port: 3001,
-    strictPort: true,
-    cors: true,  // Allow cross-origin requests
-    hmr: {
-      // Eliminar clientPort o configurarlo para que coincida con el puerto del servidor
-      protocol: 'ws', // Usar protocolo WebSocket no seguro en vez de wss
-      host: 'localhost', // Especificar el host explícitamente
-      port: 3001 // Usar el mismo puerto que el servidor
-    }
-  },
+server: {
+  host: '0.0.0.0',
+  port: 3001,
+  strictPort: true,
+  cors: true,
+},
   build: {
     // Optimizaciones de build
-    target: 'es2015',
+    target: 'es2020',
     minify: 'terser',
     terserOptions: {
       compress: {

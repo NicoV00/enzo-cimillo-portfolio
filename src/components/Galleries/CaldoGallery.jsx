@@ -5,6 +5,8 @@ import NavigationArrow from './NavigationArrow';
 import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('caldo');
@@ -302,13 +304,22 @@ const CaldoGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   // Images and videos for CALDO
   const content = useMemo(() => ({
     LOGO: '/images/CALDO/CALDO-MARCOS.png',
     C1: '/images/CALDO/webp/CALDO-1 (PORTADA).webp',
     C2: '/images/CALDO/CALDO-2.mp4',
-    C3: '/images/CALDO/CALDO-3.mp4',
-    C4: '/images/CALDO/CALDO-4.mp4',
+    C3: '/images/CALDO/CALDO-3_opt.mp4',
+    C4: '/images/CALDO/CALDO-4_opt.mp4',
     C5: '/images/CALDO/CALDO-5.mp4',
     C6: '/images/CALDO/CALDO-6.png', // Logo CALDO BASTARDO
     C7: '/images/CALDO/CALDO-7.mp4',
@@ -375,7 +386,7 @@ const CaldoGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true, // Always use horizontal scrolling
     duration: 2.5,           // Increased duration for smoother motion
@@ -514,7 +525,7 @@ const CaldoGallery = ({ onBack }) => {
         component="audio"
         ref={audioRef}
         src={content.AUDIO}
-        sx={{ display: 'none' }}
+        sx={{ display: 'none' , cursor: 'pointer'}}
         onEnded={() => {
           setIsPlaying(false);
           setShowText(false);
@@ -531,13 +542,14 @@ const CaldoGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="270px"
         mobileHeight="67vh"
         mobileWidth="55vh"
-      >
+      
+        onClick={() => handleImageClick(0)}>
         <Box component="img" src={content.C1} alt="CALDO 1" loading="eager" />
       </ImageItem>
 
@@ -556,7 +568,7 @@ const CaldoGallery = ({ onBack }) => {
         videoLeft="18%"
         videoWidth="64%"
         videoHeight="92%"
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="780px"
@@ -652,7 +664,7 @@ const CaldoGallery = ({ onBack }) => {
         videoLeft="18%"
         videoWidth="64%"
         videoHeight="92%"
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2100px"
@@ -730,7 +742,7 @@ const CaldoGallery = ({ onBack }) => {
         videoLeft="18%"
         videoWidth="64%"
         videoHeight="92%"
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="3100px"
@@ -814,6 +826,17 @@ const CaldoGallery = ({ onBack }) => {
     <>
       <GlobalStyle />
 
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
+
       {/* Loading screen component */}
       <GalleryLoadingScreen
         title="Caldo Bastardo"
@@ -831,7 +854,8 @@ const CaldoGallery = ({ onBack }) => {
         ref={progressBarRef}
         data-scroll-progress
         sx={{
-          opacity: loading ? 0 : 1
+          opacity: loading ? 0 : 1,
+        cursor: 'pointer',
         }}
       />
 

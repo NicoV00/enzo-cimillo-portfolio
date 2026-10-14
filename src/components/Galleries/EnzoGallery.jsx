@@ -5,6 +5,8 @@ import { gsap } from 'gsap';
 import NavigationArrow from './NavigationArrow';
 import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 
 // Register GSAP plugins if needed
 if (typeof gsap.registerPlugin === 'function') {
@@ -148,6 +150,15 @@ const EnzoGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   // Get theme for media queries
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -204,7 +215,7 @@ const EnzoGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true,
     duration: 2.5,
@@ -213,6 +224,7 @@ const EnzoGallery = ({ onBack }) => {
     lerp: 0.04,
     colors: galleryTheme
   });
+
 
   // Loading progress animation
   useEffect(() => {
@@ -336,6 +348,7 @@ const EnzoGallery = ({ onBack }) => {
     }
   }, [loading, isMobile, checkVisibility]);
 
+
   // Gallery content with layout based on reference image
   const renderGalleryContent = () => (
     <>
@@ -349,7 +362,10 @@ const EnzoGallery = ({ onBack }) => {
         isVisible={visibleImages[0] !== false}
         mobileLeft="0px"
         mobileHeight="100vh"
-        mobileWidth="150vw"      >
+        mobileWidth="150vw"
+        onClick={() => handleImageClick(0)}
+        sx={{ cursor: 'pointer' }}
+      >
         <Box component="img" src={images[0]} alt="ex- 1" loading="eager" />
       </ImageItem>
 
@@ -357,14 +373,15 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[1] = el}
         left="800px"
-        height="90vh"
+        height="85vh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[1] !== false}
         mobileLeft="850px"
         mobileHeight="80vh"
         mobileWidth="200vw"
-
+        onClick={() => handleImageClick(1)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[1]} alt="ex- 2" loading="lazy" />
       </ImageItem>
@@ -373,13 +390,15 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[2] = el}
         left="1940px"
-        height="90vh"
+        height="85vh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         mobileLeft="1800px"
         mobileHeight="80vh"
         mobileWidth="130vw"
+        onClick={() => handleImageClick(2)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[2]} alt="ex- 3" loading="lazy" />
       </ImageItem>
@@ -395,6 +414,8 @@ const EnzoGallery = ({ onBack }) => {
         mobileLeft="2800px"
         mobileHeight="60vh"
         mobileWidth="100vw"
+        onClick={() => handleImageClick(3)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[3]} alt="ex- 4" loading="lazy" />
       </ImageItem>
@@ -410,7 +431,8 @@ const EnzoGallery = ({ onBack }) => {
         mobileLeft="3300px"
         mobileHeight="60vh"
         mobileWidth="100vw"
-        
+        onClick={() => handleImageClick(4)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[4]} alt="ex- 5" loading="lazy" />
       </ImageItem>
@@ -426,6 +448,8 @@ const EnzoGallery = ({ onBack }) => {
         mobileLeft="4100px"
         mobileHeight="100vh"
         mobileWidth="305vw"
+        onClick={() => handleImageClick(5)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[5]} alt="ex- 6" loading="lazy" />
       </ImageItem>
@@ -440,6 +464,8 @@ const EnzoGallery = ({ onBack }) => {
         isVisible={visibleImages[6] !== false}
         mobileLeft="5420px"
         mobileHeight="100vh"
+        onClick={() => handleImageClick(6)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[6]} alt="ex- 7" loading="lazy" />
       </ImageItem>
@@ -454,7 +480,8 @@ const EnzoGallery = ({ onBack }) => {
         isVisible={visibleImages[7] !== false}
         mobileLeft="6130px"
         mobileHeight="100vh"
-        
+        onClick={() => handleImageClick(7)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[7]} alt="ex- 8" loading="lazy" />
       </ImageItem>
@@ -463,13 +490,15 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[8] = el}
         left="7200px"
-        height="90vh"
+        height="85vh"
         width="auto"
         zIndex={3}
         isVisible={visibleImages[8] !== false}
         mobileLeft="7400px"
         mobileHeight="80vh"
         mobileWidth="140vw"
+        onClick={() => handleImageClick(8)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[8]} alt="ex- 9" loading="lazy" />
       </ImageItem>
@@ -478,14 +507,15 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[9] = el}
         left="7900px"
-        height="90vh"
+        height="85vh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[9] !== false}
         mobileLeft="8120px"
         mobileHeight="80vh"
         mobileWidth="140vw"
-
+        onClick={() => handleImageClick(9)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[9]} alt="ex- 10" loading="lazy" />
       </ImageItem>
@@ -501,6 +531,8 @@ const EnzoGallery = ({ onBack }) => {
         mobileLeft="8850px"
         mobileHeight="100vh"
         mobileWidth="160vw"
+        onClick={() => handleImageClick(10)}
+        sx={{ cursor: 'pointer' }}
       >
         <Box component="img" src={images[10]} alt="ex- 11" loading="lazy" />
       </ImageItem>
@@ -509,6 +541,17 @@ const EnzoGallery = ({ onBack }) => {
 
   return (
     <>
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? images[centeredImage] : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
+
       {/* Loading screen */}
       <GalleryLoadingScreen
         title="ex-"

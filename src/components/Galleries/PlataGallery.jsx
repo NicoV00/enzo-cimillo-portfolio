@@ -5,6 +5,8 @@ import NavigationArrow from './NavigationArrow';
 import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
 import { getGalleryColors } from '../utils/galleryColors';
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('plata');
@@ -144,6 +146,15 @@ const PlataGallery = ({ onBack }) => {
   const [visibleImages, setVisibleImages] = useState({});
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   // Images for PLATA - using the correct folder path
   const images = useMemo(() => ({
     P1: '/images/PLATA/PLATA-1.png',
@@ -155,7 +166,7 @@ const PlataGallery = ({ onBack }) => {
     P7: '/images/PLATA/PLATA-7.png',
     P8: '/images/PLATA/PLATA-8.png',
     P9: '/images/PLATA/webp/PLATA-9.webp',
-    P10: '/images/PLATA/PLATA-10.png',
+    P10: '/images/PLATA/PLATA-10.webp',
     P11: '/images/PLATA/PLATA-11.png',
     P12: '/images/PLATA/webp/PLATA-12.webp',
     P13: '/images/PLATA/webp/PLATA-13.webp'
@@ -204,7 +215,7 @@ const PlataGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress, lenis } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true, // Always use horizontal scrolling for both desktop and mobile
     duration: 2.5,           // Extended duration for smoother motion
@@ -325,8 +336,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(0)}>
         <Box component="img" src={images.P1} alt="PLATA 1" loading="eager" />
       </ImageItem>
 
@@ -338,8 +350,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(1)}>
         <Box component="img" src={images.P2} alt="PLATA 2" loading="eager" />
       </ImageItem>
 
@@ -352,8 +365,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={3}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(2)}>
         <Box component="img" src={images.P3} alt="PLATA 3" loading="eager" />
       </ImageItem>
 
@@ -368,9 +382,11 @@ const PlataGallery = ({ onBack }) => {
         isMobile={isMobile}
         sx={{
           transform: 'translateY(-50%) translateZ(0) rotate(10deg) scale(1.4)', // Añadido rotate y scale
-          transformOrigin: 'center center'
+          transformOrigin: 'center center',
+        cursor: 'pointer',
         }}
-      >
+      
+        onClick={() => handleImageClick(3)}>
         <Box component="img" src={images.P4} alt="PLATA 4" loading="eager" />
       </ImageItem>
 
@@ -383,8 +399,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(4)}>
         <Box component="img" src={images.P5} alt="PLATA 5" loading="eager" />
       </ImageItem>
 
@@ -397,8 +414,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(5)}>
         <Box component="img" src={images.P6} alt="PLATA 6" loading="eager" />
       </ImageItem>
 
@@ -413,8 +431,10 @@ const PlataGallery = ({ onBack }) => {
         isMobile={isMobile}
         sx={{
           transform: 'translateY(-50%) translateZ(0)',
+        cursor: 'pointer',
         }}
-      >
+      
+        onClick={() => handleImageClick(6)}>
         <Box component="img" src={images.P7} alt="PLATA 7" loading="lazy" />
       </ImageItem>
 
@@ -427,8 +447,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={3}
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(7)}>
         <Box component="img" src={images.P8} alt="PLATA 8" loading="lazy" />
       </ImageItem>
 
@@ -440,8 +461,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={3}
         isVisible={visibleImages[8] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(8)}>
         <Box component="img" src={images.P9} alt="PLATA 9" loading="lazy" />
       </ImageItem>
 
@@ -454,8 +476,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={3}
         isVisible={visibleImages[9] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(9)}>
         <Box component="img" src={images.P10} alt="PLATA 10" loading="lazy" />
       </ImageItem>
 
@@ -469,9 +492,11 @@ const PlataGallery = ({ onBack }) => {
         isMobile={isMobile}
         sx={{
           transform: 'translateY(-50%) translateZ(0)',
-          opacity: 0.2  // Aquí defines la opacidad (0 es completamente transparente, 1 es completamente opaco)
+          opacity: 0.2, // opacidad (0 transparente, 1 opaco)
+        cursor: 'pointer',
         }}
-      >
+      
+        onClick={() => handleImageClick(10)}>
         <Box component="img" src={images.P11} alt="PLATA 11" loading="lazy" />
       </ImageItem>
 
@@ -484,8 +509,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={4}
         isVisible={visibleImages[11] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(11)}>
         <Box component="img" src={images.P12} alt="PLATA 12" loading="lazy" />
       </ImageItem>
 
@@ -497,8 +523,9 @@ const PlataGallery = ({ onBack }) => {
         zIndex={4}
         isVisible={visibleImages[12] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
-      >
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+      
+        onClick={() => handleImageClick(12)}>
         <Box component="img" src={images.P13} alt="PLATA 13" loading="lazy" />
       </ImageItem>
     </>
@@ -507,6 +534,17 @@ const PlataGallery = ({ onBack }) => {
   return (
     <>
       <MediumFontStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
       <MyriadFontStyle />
 
       {/* Loading screen component */}
@@ -526,7 +564,8 @@ const PlataGallery = ({ onBack }) => {
         ref={progressBarRef}
         data-scroll-progress
         sx={{
-          opacity: loading ? 0 : 1
+          opacity: loading ? 0 : 1,
+        cursor: 'pointer',
         }}
       />
 

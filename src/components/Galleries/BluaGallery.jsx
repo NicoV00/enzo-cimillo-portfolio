@@ -4,6 +4,8 @@ import { styled } from '@mui/material/styles';
 import NavigationArrow from './NavigationArrow';
 import GalleryLoadingScreen from './GalleryLoadingScreen';
 import useSmoothScroll from './useSmoothScroll';
+import useCenteredImage from './useCenteredImage';
+import CenteredImageOverlay from './CenteredImageOverlay';
 
 // Custom color theme for Constelacion gallery
 const galleryTheme = {
@@ -202,6 +204,15 @@ const ConstelacionGallery = ({ onBack }) => {
   // Referencias para todas las imágenes
   const imageRefs = useRef([]);
 
+  // Use centered image hook
+  const {
+    centeredImage,
+    isImageCentered,
+    handleImageClick,
+    handleCenteredImageClick,
+    handleOverlayClick
+  } = useCenteredImage();
+
   // Spotify track data for constellation with custom minimal UI
   const spotifyTrack = {
     id: '3VEQBNtshnnRnad8e0UhKV',
@@ -253,7 +264,7 @@ const ConstelacionGallery = ({ onBack }) => {
   const { scrollLeft, scrollProgress } = useSmoothScroll({
     containerRef,
     isMobile,
-    isLoading: loading,
+    isLoading: loading || isImageCentered, // Pause scroll when image is centered
     checkVisibility,
     horizontal: true, // Always use horizontal scrolling
     duration: 2.5,           // Increased duration for smoother motion
@@ -403,13 +414,14 @@ const ConstelacionGallery = ({ onBack }) => {
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="45%"
         mobileLeft="270px"
         mobileHeight="70vh"
         mobileWidth="70vh"
-      >
+      
+        onClick={() => handleImageClick(0)}>
         <Box
           component="img"
           src="/images/blua/webp/b1.webp"
@@ -428,7 +440,8 @@ const ConstelacionGallery = ({ onBack }) => {
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
         sx={{
-          transform: 'translateY(-50%) translateZ(0)'
+          transform: 'translateY(-50%) translateZ(0)',
+        cursor: 'pointer',
         }}
         // Ajustes específicos para móvil
         mobileTop="50%"
@@ -458,13 +471,14 @@ const ConstelacionGallery = ({ onBack }) => {
         isVisible={visibleImages[2] !== false}
         isPhoto={false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="45%"
         mobileLeft="1300px"
         mobileHeight="auto"
         mobileWidth="1500px"
-      >
+      
+        onClick={() => handleImageClick(2)}>
         <Box
           component="img"
           src="/images/blua/2.png"
@@ -478,6 +492,17 @@ const ConstelacionGallery = ({ onBack }) => {
   return (
     <>
       <GlobalStyle />
+
+      {/* Centered image overlay - only show when not loading */}
+      {!loading && (
+        <CenteredImageOverlay
+          isVisible={isImageCentered}
+          imageIndex={centeredImage}
+          imageSrc={centeredImage !== null ? (Array.isArray(images) ? images[centeredImage] : Object.values(images)[centeredImage]) : null}
+          onOverlayClick={handleOverlayClick}
+          onImageClick={handleCenteredImageClick}
+        />
+      )}
       <SpotifyCustomStyle />
 
       {/* Loading screen component */}
@@ -497,7 +522,8 @@ const ConstelacionGallery = ({ onBack }) => {
         ref={progressBarRef}
         data-scroll-progress
         sx={{
-          opacity: loading ? 0 : 1
+          opacity: loading ? 0 : 1,
+        cursor: 'pointer',
         }}
       />
 

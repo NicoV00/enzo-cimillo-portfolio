@@ -1,5 +1,5 @@
 // src/components/MyWaySection.jsx
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
 
 // Declaración de la fuente Helvetica-Bold
@@ -13,208 +13,8 @@ const fontFaceStyle = `
   }
 `;
 
-// Custom Scrollbar Component - Simplificado
-const CustomScrollbar = () => {
-  const scrollbarRef = useRef(null);
-  const thumbRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragRef = useRef({ start: { y: 0, scroll: 0 } });
-
-  const setScrollbar = useCallback(() => {
-    if (!scrollbarRef.current || !thumbRef.current) return;
-
-    const safeHeight = window.innerHeight;
-    const documentHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
-    const maxScrollTop = documentHeight - safeHeight;
-    
-    if (maxScrollTop <= 0) return;
-    
-    const scrollProgress = Math.max(0, Math.min(1, window.scrollY / maxScrollTop));
-    const scrollbarHeight = Math.max(20, (safeHeight / documentHeight) * safeHeight);
-    const scrollbarTop = scrollProgress * (safeHeight - scrollbarHeight);
-
-    scrollbarRef.current.style.setProperty('--scrollbar-height', `${scrollbarHeight}px`);
-    scrollbarRef.current.style.setProperty('--scrollbar-top', `${scrollbarTop}px`);
-  }, []);
-
-  const onDragStart = useCallback((e) => {
-    const clientY = e.clientY || e.touches[0].clientY;
-    const safeHeight = window.innerHeight;
-    const documentHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
-    const maxScrollTop = documentHeight - safeHeight;
-    
-    if (maxScrollTop <= 0) return;
-    
-    setIsDragging(true);
-    dragRef.current.start.y = clientY;
-    dragRef.current.start.scroll = Math.max(0, Math.min(1, window.scrollY / maxScrollTop));
-    
-    if (scrollbarRef.current) {
-      scrollbarRef.current.classList.add('is-dragging');
-    }
-    e.preventDefault();
-  }, []);
-
-  const onDragMove = useCallback((e) => {
-    if (!isDragging) return;
-
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    if (!clientY) return;
-    
-    const safeHeight = window.innerHeight;
-    const documentHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
-    const maxScrollTop = documentHeight - safeHeight;
-    
-    if (maxScrollTop <= 0) return;
-    
-    const dragDelta = clientY - dragRef.current.start.y;
-    const dragProgress = dragDelta / safeHeight;
-    const newScrollProgress = Math.max(0, Math.min(1, dragRef.current.start.scroll + dragProgress));
-    const scrollMove = newScrollProgress * maxScrollTop;
-
-    window.scrollTo(0, scrollMove);
-    e.preventDefault();
-  }, [isDragging]);
-
-  const onDragEnd = useCallback((e) => {
-    if (!isDragging) return;
-
-    setIsDragging(false);
-    if (scrollbarRef.current) {
-      scrollbarRef.current.classList.remove('is-dragging');
-    }
-    e.preventDefault();
-  }, [isDragging]);
-
-  useEffect(() => {
-    const handleScroll = () => setScrollbar();
-    const handleResize = () => setScrollbar();
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleResize, { passive: true });
-    document.addEventListener('mousemove', onDragMove);
-    document.addEventListener('mouseup', onDragEnd);
-    document.addEventListener('touchmove', onDragMove, { passive: false });
-    document.addEventListener('touchend', onDragEnd);
-
-    setScrollbar();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleResize);
-      document.removeEventListener('mousemove', onDragMove);
-      document.removeEventListener('mouseup', onDragEnd);
-      document.removeEventListener('touchmove', onDragMove);
-      document.removeEventListener('touchend', onDragEnd);
-    };
-  }, [setScrollbar, onDragMove, onDragEnd]);
-
-  return (
-    <Box
-      ref={scrollbarRef}
-      className="site-scrollbar"
-      sx={{
-        '--border-width': '16px',
-        '--scrollbar-height': '0px',
-        '--scrollbar-top': '0px',
-        
-        position: 'fixed',
-        top: 0,
-        right: 0,
-        zIndex: 20,
-        width: 'var(--border-width)',
-        height: '100%',
-        scale: '1 1',
-        transition: 'scale 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        willChange: 'scale',
-        
-        '@media (max-width: 768px)': {
-          '--border-width': '8px',
-        },
-        
-        '&.is-dragging': {
-          cursor: 'grabbing',
-          '& .scrollbar-thumb': {
-            cursor: 'grabbing',
-            '&::after': {
-              width: 'calc(var(--border-width) - 2px)',
-              backgroundColor: '#fff',
-            },
-          },
-        },
-      }}
-    >
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          zIndex: 2,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'transparent',
-          pointerEvents: 'none',
-        }}
-      />
-      
-      <Box
-        ref={thumbRef}
-        className="scrollbar-thumb"
-        onMouseDown={onDragStart}
-        onTouchStart={onDragStart}
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: '50%',
-          zIndex: 3,
-          width: 'calc(var(--border-width) * 0.5)',
-          height: 'var(--scrollbar-height)',
-          cursor: 'grab',
-          transform: 'translateX(-50%) translateY(var(--scrollbar-top))',
-          scale: '1 1',
-          transition: 'scale 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.07s linear',
-          willChange: 'opacity, scale, transform',
-          
-          '.is-transitioning &': {
-            scale: '0 1',
-          },
-          
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 'calc(var(--border-width) * -1)',
-            left: 'calc(50% - var(--border-width) * 0.5)',
-            width: 'var(--border-width)',
-            height: 'calc(100% + var(--border-width))',
-          },
-          
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            top: 'var(--border-width)',
-            bottom: 'var(--border-width)',
-            left: '50%',
-            width: '100%',
-            height: 'auto',
-            backgroundColor: '#000',
-            borderRadius: 'inherit',
-            transform: 'translateX(-50%)',
-            transition: 'width 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.1s cubic-bezier(0.4, 0, 0.2, 1)',
-            willChange: 'background, width',
-          },
-          
-          '&:hover::after': {
-            width: 'calc(var(--border-width) - 2px)',
-          },
-        }}
-      />
-    </Box>
-  );
-};
-
 const MyWaySection = ({ onBack, onBackToGalleries }) => {
   const sectionRef = useRef(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const scrollRef = useRef({ p: 0, sp: 0 });
 
   // Inyectar los estilos de fuente al montarse el componente
@@ -233,8 +33,12 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
     
     const tick = () => {
       const scroll = scrollRef.current;
-      scroll.sp += (scroll.p - scroll.sp) * 0.1;
-      setScrollProgress(scroll.sp);
+      const next = scroll.sp + (scroll.p - scroll.sp) * 0.08;
+      // Escribir la variable CSS directo (sin re-render de React) y solo si cambió
+      if (Math.abs(next - scroll.sp) > 0.00005 && sectionRef.current) {
+        sectionRef.current.style.setProperty('--scroll-progress', next.toFixed(5));
+      }
+      scroll.sp = next;
       animationFrameId = requestAnimationFrame(tick);
     };
 
@@ -276,13 +80,11 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
 
   return (
     <>
-      <CustomScrollbar />
-      
       <Box
         ref={sectionRef}
         sx={{
           '--padding': '25rem', // REDUCIDO para ver las letras antes
-          '--scroll-progress': scrollProgress,
+          '--scroll-progress': 0,
           '--distortion': 50,
 
           display: 'flex',
@@ -354,6 +156,8 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
                 left: '-100%',
                 width: '300%',
                 height: 'calc(var(--padding) * 1.05 + 5rem)',
+                // Líneas de perspectiva: en el plano distorsionado fugan hacia atrás, en el normal bajan rectas
+                backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.14) 0 1px, transparent 1px calc(100% / 36))',
                 transformOrigin: '50% 100%',
                 transform: `matrix3d(
                   1,
@@ -453,6 +257,8 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
                 left: '-100%',
                 width: '300%',
                 height: '100%',
+                // Líneas de perspectiva: en el plano distorsionado fugan hacia atrás, en el normal bajan rectas
+                backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.14) 0 1px, transparent 1px calc(100% / 36))',
               }}
             >
               <Box

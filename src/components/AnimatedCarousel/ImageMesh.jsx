@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { gsap } from 'gsap';
 import PortfolioButton from './PortfolioButton';
 import { getGalleryColors } from '../utils/galleryColors';
+import { optimizedCover } from '../utils/coverImages';
 
 const ImageMesh = React.memo(({
   position,
@@ -11,6 +12,8 @@ const ImageMesh = React.memo(({
   onClick,
   isHighQuality,
   isSelected,
+  // Durante la transición de la intro la imagen pasa bajo el cursor: sin hover
+  hoverDisabled = false,
   onGalleryToggle,
   isMobile = false // New prop for mobile optimization
 }) => {
@@ -29,10 +32,11 @@ const ImageMesh = React.memo(({
       
       // Mobile-optimized texture loading
       if (isMobile || !isHighQuality) {
-        loader.load(textureUrl, (tex) => {
+        loader.load(optimizedCover(textureUrl), (tex) => {
           if (!mounted) return;
           
           // Mobile optimizations
+          tex.colorSpace = THREE.SRGBColorSpace;
           tex.minFilter = THREE.LinearFilter;
           tex.magFilter = THREE.LinearFilter;
           tex.generateMipmaps = false;
@@ -58,6 +62,7 @@ const ImageMesh = React.memo(({
               
               // Create new texture from resized canvas
               const resizedTexture = new THREE.CanvasTexture(canvas);
+              resizedTexture.colorSpace = THREE.SRGBColorSpace;
               resizedTexture.minFilter = THREE.LinearFilter;
               resizedTexture.magFilter = THREE.LinearFilter;
               resizedTexture.generateMipmaps = false;
@@ -74,9 +79,9 @@ const ImageMesh = React.memo(({
         // Desktop high quality loading
         try {
           const loadedTexture = await new Promise((resolve) => {
-            loader.load(textureUrl, (tex) => {
+            loader.load(optimizedCover(textureUrl), (tex) => {
               if (mounted) {
-                tex.encoding = THREE.sRGBEncoding;
+                tex.colorSpace = THREE.SRGBColorSpace;
                 tex.minFilter = THREE.LinearMipmapLinearFilter;
                 tex.magFilter = THREE.LinearFilter;
                 tex.generateMipmaps = true;
@@ -118,7 +123,7 @@ const ImageMesh = React.memo(({
   
   const handlePointerOver = () => {
     // Disable hover effects on mobile to improve performance
-    if (isMobile) return;
+    if (isMobile || hoverDisabled) return;
     
     setIsHovered(true);
     
@@ -134,7 +139,7 @@ const ImageMesh = React.memo(({
   };
   
   const handlePointerOut = () => {
-    if (isMobile) return;
+    if (isMobile || hoverDisabled) return;
     
     setIsHovered(false);
     
@@ -168,6 +173,8 @@ const ImageMesh = React.memo(({
         <meshBasicMaterial
           map={texture}
           transparent
+          // Sin tone mapping: la foto se ve igual que en el video / en la web
+          toneMapped={false}
           side={THREE.FrontSide}
           // Reduce overdraw on mobile
           depthWrite={!isMobile || isSelected}
