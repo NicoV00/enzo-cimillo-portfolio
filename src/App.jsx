@@ -159,6 +159,10 @@ const ProjectInfoContainer = styled(Box)(({ isVisible, textColor }) => ({
   bottom: '20px',
   left: '50%',
   textAlign: 'center',
+  display: 'flex',
+  alignItems: 'baseline',
+  justifyContent: 'center',
+  gap: '8px',
   zIndex: 1000,
   pointerEvents: 'none',
   color: textColor || '#000000', // Usar el color del tema directamente
@@ -175,7 +179,6 @@ const ProjectInfoContainer = styled(Box)(({ isVisible, textColor }) => ({
 }));
 
 const ProjectName = styled(Box)({
-  marginBottom: '4px',
   fontSize: '18px',
   fontWeight: 'bold',
   letterSpacing: '1px',
