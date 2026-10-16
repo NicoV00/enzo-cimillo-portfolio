@@ -14,6 +14,7 @@ import { gsap } from 'gsap';
 import * as THREE from 'three';
 import MyWaySection from './components/MyWaySection';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import MobileComingSoon from './components/MobileComingSoon';
 
 // Lazy loaded galleries
@@ -711,6 +712,7 @@ function App() {
 
       {/* Vercel Analytics */}
       <Analytics />
+      <SpeedInsights />
     </>
   );
 }
