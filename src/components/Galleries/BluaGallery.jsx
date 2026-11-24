@@ -44,7 +44,7 @@ const ScrollProgressBar = styled(Box)({
 const GalleryContainer = styled(Box)(({ theme }) => ({
   backgroundColor: galleryTheme.main, // Using theme main color
   width: '100vw',
-  height: '100vh',
+  height: '100dvh',
   position: 'relative',
   overflowX: 'auto',
   overflowY: 'hidden',
@@ -62,8 +62,8 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
     // Keep horizontal scrolling for mobile instead of vertical
     overflowX: 'auto',
     overflowY: 'hidden',
-    height: '100vh', // Keep full height
-    minHeight: '100vh',
+    height: '100dvh', // Keep full height
+    minHeight: '100dvh',
   },
 }));
 
@@ -77,7 +77,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '3000px', // Reduced width for mobile (65% of desktop)
+    width: 'calc(2400px + 70dvh)', // sigue a las posiciones móviles (dependen del alto de pantalla)
     height: '100%',
     padding: '20px', // Menos padding en móvil
     paddingRight: '150px', // Menos padding en móvil
@@ -118,7 +118,8 @@ const ImageItem = styled(Box, {
   willChange: 'opacity', // Solo opacidad cambiará
   backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: isPhoto ? '100%' : 'auto',
     objectFit: isPhoto ? 'cover' : 'contain',
     borderRadius: isPhoto ? '2px' : '0',
@@ -156,27 +157,36 @@ const SpotifyContainer = styled(Box, {
   alignItems: 'center',
   justifyContent: 'center',
   overflow: 'hidden',
-  borderRadius: '12px',
+  borderRadius: '16px',
   opacity: isVisible ? 1 : 0,
   transform: 'translateZ(0)', // NO animation, just GPU acceleration
   transition: 'opacity 0.5s ease', // Only opacity transition, no transform
   marginBottom: '0',
   backfaceVisibility: 'hidden',
 
-  // Simple glass effect - clean and minimal
-  background: 'rgba(255, 255, 255, 0.05)', // Very subtle white overlay
-  backdropFilter: 'blur(1px)', // Minimal blur
-  WebkitBackdropFilter: 'blur(1px)', // Safari support
-  border: '1px solid rgba(0, 0, 0, 0.1)', // Black border instead of white
+  // Vidrio de la nav inferior (.bnav__container::before): tinte negro 0.3 + blur 25px
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 'inherit',
+    background: 'rgba(0, 0, 0, 0.3)',
+    backdropFilter: 'blur(25px)',
+    WebkitBackdropFilter: 'blur(25px)',
+    pointerEvents: 'none',
+  },
 
+  // El embed de Spotify es cross-origin y trae su fondo oscuro: con "screen" el
+  // negro desaparece sobre el vidrio y quedan el texto y los íconos blancos
   '& iframe': {
+    position: 'relative',
     border: 'none',
     width: '100%',
     height: '80px',
     backgroundColor: 'transparent',
     borderRadius: '12px',
-    filter: 'grayscale(100%) brightness(0.9) contrast(1.2)', // Darker for black text
-    opacity: 0.9,
+    filter: 'grayscale(100%) contrast(1.25)',
+    mixBlendMode: 'screen',
   }
 }));
 
@@ -212,6 +222,9 @@ const ConstelacionGallery = ({ onBack }) => {
     handleCenteredImageClick,
     handleOverlayClick
   } = useCenteredImage();
+
+  // Fotos ampliables (el índice coincide con handleImageClick)
+  const images = ['/images/blua/webp/b1.webp'];
 
   // Spotify track data for constellation with custom minimal UI
   const spotifyTrack = {
@@ -410,7 +423,7 @@ const ConstelacionGallery = ({ onBack }) => {
         top="50%"
         left="450px"
         width="auto"
-        height="85vh"
+        height="85dvh"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
@@ -418,8 +431,8 @@ const ConstelacionGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="45%"
         mobileLeft="270px"
-        mobileHeight="70vh"
-        mobileWidth="70vh"
+        mobileHeight="70dvh"
+        mobileWidth="70dvh"
       
         onClick={() => handleImageClick(0)}>
         <Box
@@ -443,10 +456,12 @@ const ConstelacionGallery = ({ onBack }) => {
           transform: 'translateY(-50%) translateZ(0)',
         cursor: 'pointer',
         }}
-        // Ajustes específicos para móvil
+        // Ajustes específicos para móvil: b1 es cuadrada y mide 70dvh, así que el
+        // player se ubica desde donde termina la foto (antes, fijo en 940px, la
+        // tocaba en celulares altos)
         mobileTop="50%"
-        mobileLeft="940px"
-        mobileWidth="220px"
+        mobileLeft="calc(270px + 70dvh + 96px)"
+        mobileWidth="300px"
       >
         <Box
           component="iframe"
@@ -471,14 +486,13 @@ const ConstelacionGallery = ({ onBack }) => {
         isVisible={visibleImages[2] !== false}
         isPhoto={false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , pointerEvents: 'none'}}
         // Ajustes específicos para móvil
         mobileTop="45%"
-        mobileLeft="1300px"
+        // después del player (220px) con 140px de aire
+        mobileLeft="calc(270px + 70dvh + 96px + 300px + 140px)"
         mobileHeight="auto"
-        mobileWidth="1500px"
-      
-        onClick={() => handleImageClick(2)}>
+        mobileWidth="1500px">
         <Box
           component="img"
           src="/images/blua/2.png"

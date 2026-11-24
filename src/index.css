@@ -1,8 +1,8 @@
+/* Tailwind 4 + sombras apiladas de shadow-plugin (clases smooth-shadow-*) */
+@import "tailwindcss";
+@import "shadow-plugin";
+
 body, html {
     margin: 0;
     padding: 0;
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

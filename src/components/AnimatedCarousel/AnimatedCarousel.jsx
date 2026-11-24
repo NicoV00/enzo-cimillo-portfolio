@@ -4,7 +4,22 @@ import { optimizedCover } from "../utils/coverImages";
 import { useLoader, useFrame, useThree } from '@react-three/fiber';
 import { gsap } from 'gsap';
 import ImageMesh from './ImageMesh';
+
+const WHITE_BG = new THREE.Color('#ffffff');
+const HOVER_BG = new THREE.Color('#e4e4e4');
 import { getGalleryColors } from '../utils/galleryColors';
+
+// Distancia de reposo de la cámara (vista general de la nube)
+const CAMERA_DIST = 41;
+
+// Las fotos copian la rotación de la cámara (billboard plano) en vez de lookAt:
+// lookAt las inclinaba al subir/bajar la vista. Se descuenta el giro del grupo padre.
+const _parentQ = new THREE.Quaternion();
+const faceCamera = (obj, camera) => {
+  if (obj.parent) obj.parent.getWorldQuaternion(_parentQ).invert();
+  else _parentQ.identity();
+  obj.quaternion.multiplyQuaternions(_parentQ, camera.quaternion);
+};
 
 // Mueve la cámara en órbita alrededor del origen (interpola distancia y ángulos)
 // en vez de en línea recta: así el encuadre no hace barridos raros al ir/volver
@@ -68,13 +83,9 @@ const AnimatedCarousel = ({
       "./images/CALDO/CALDO-1 (PORTADA).jpg",
       "./images/blua_constelaciones_finales.jpg",
       "./images/PLATA/PLATA-2.jpg",
-      "./images/CAT-17.jpg",
-      "./images/NWB&W-09.jpg",
+      "./images/TEO/V1.jpg",
       "./images/S-1.jpg",
       "./images/MDLST/MDLST-1.png",
-      "./images/TEO/V1.jpg",
-      "./images/LENOIR/LENOIR-1.jpg",
-      "./images/KABOA/KABOA-1.jpg",
       "./images/AMOUR/portada.jpg",
       "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg",
       "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg",
@@ -91,7 +102,7 @@ const AnimatedCarousel = ({
 
   const projectInfo = useMemo(() => ({
     "./images/CALDO/CALDO-1 (PORTADA).jpg": { name: "Caldo Bastardo", year: "2024" },
-    "./images/blua_constelaciones_finales.jpg": { name: "Constelacion, Blua", year: "2024" },
+    "./images/blua_constelaciones_finales.jpg": { name: "Constelación, Blua", year: "2024" },
     "./images/PLATA/PLATA-2.jpg": { name: "Plata, Blua", year: "2024" },
     "./images/CAT-17.jpg": { name: "Catatumbo", year: "2024" },
     "./images/NWB&W-09.jpg": { name: "Neam Wave", year: "2024" },
@@ -101,7 +112,7 @@ const AnimatedCarousel = ({
     "./images/LENOIR/LENOIR-1.jpg": { name: "Lenoir", year: "2024" },
     "./images/KABOA/KABOA-1.jpg": { name: "Kaboa SS24", year: "2024" },
     "./images/AMOUR/portada.jpg": { name: "A del Amour", year: "2024" },
-    "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": { name: "Catalogo MUF", year: "2024" },
+    "./images/MARCOS/MARCOSMUF-5 (PORTADA).jpg": { name: "Catálogo MUF", year: "2024" },
     "./images/PASARELA/PASARELA MUF-12(PORTADA).jpg": { name: "Pasarela MUF", year: "2024" },
     "./images/IDENTIDAD/IDENTIDAD MUF-1 (PORTADA).jpg": { name: "Montevideo Under Fashion", year: "2024" },
     "./images/X/@enzocimillo_ex-_1.jpg": { name: "ex-", year: "2026" }
@@ -159,22 +170,19 @@ const AnimatedCarousel = ({
 
   // ADJUSTED POSITIONS FOR MOBILE
   const originalPositions = useMemo(() => {
+    // Blua stays at the origin for the intro; the remaining covers have room to breathe.
     const desktopPositions = [
-      [-4.5, -4.5, 4],
-      [0, 0, 14], // imagen de la intro: centrada, así llega sin inclinarse (lookAt = sin rotación)
-      [14, 4, -18],
-      [1, 3, -13],
-      [17, 3, 1],
-      [-14, 0, 9],
-      [13, -3, 6],
-      [-7.5, 0, 6],
-      [-0.5, 13, -12],
-      [-7.5, 8, -10],
-      [7, -2.5, -3],
-      [9.5, 5.5, 7],
-      [-13, 7, 0],
-      [8, 9.5, -8],
-      [2.5, -5.5, 12]  // ex-: más abajo para no quedar detrás de la imagen central
+      [-7, -8, 4],
+      [0, 0, 14],
+      [3, 0, -7],
+      [-16, 0, 0],
+      [-10, 7, 2],
+      [8, -8, 1],
+      [-3, 6, -6],
+      [11, 8, 2],
+      [-8, -5, -5],
+      [16, 1, -3],
+      [1, -8, 8],
     ];
 
     // Scale down positions for mobile
@@ -194,6 +202,22 @@ const AnimatedCarousel = ({
 
   const groupRef = useRef();
   const [selectedImage, setSelectedImage] = useState([]);
+  // la imagen bajo el cursor: las demás se apagan un poco
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  // Al salir de una imagen se espera un poco antes de soltar el hover: si el cursor
+  // pasa rápido a otra, el apagado se mantiene en vez de prenderse y apagarse
+  const hoverOutTimer = useRef(null);
+  const handleHoverChange = useCallback((index, on) => {
+    clearTimeout(hoverOutTimer.current);
+    if (on) {
+      setHoveredIndex(index);
+      return;
+    }
+    hoverOutTimer.current = setTimeout(() => {
+      setHoveredIndex((prev) => (prev === index ? null : prev));
+    }, 220);
+  }, []);
+  useEffect(() => () => clearTimeout(hoverOutTimer.current), []);
   const [isImageUpFront, setIsImageUpFront] = useState(false);
   const cameraRef = useRef();
   const controls = useThree((state) => state.controls);
@@ -204,6 +228,7 @@ const AnimatedCarousel = ({
   }, [controls, isImageUpFront]);
   const raycaster = useRef(new THREE.Raycaster()).current;
   const mouse = useRef(new THREE.Vector2()).current;
+  const dragRef = useRef({ active: false, moved: false, startX: 0, lastX: 0, target: 0, applied: 0, velocity: 0 });
   const [loadedIndices, setLoadedIndices] = useState([]);
   const animationInProgressRef = useRef(false);
   const timelineRef = useRef(null);
@@ -223,8 +248,8 @@ const AnimatedCarousel = ({
         timelineRef.current.kill();
         timelineRef.current = null;
       }
-      // Kill all GSAP tweens
-      gsap.killTweensOf("*");
+      // No usar killTweensOf("*"): mata también los tweens de la nav y el menú
+      // y deja el modal trabado a mitad de animación
     };
   }, []);
 
@@ -305,7 +330,7 @@ const AnimatedCarousel = ({
             gsap.set(camera.position, {
               x: 0,
               y: 0,
-              z: 45,
+              z: CAMERA_DIST,
               overwrite: true
             });
 
@@ -341,7 +366,7 @@ const AnimatedCarousel = ({
         timeline.to(camera.position, {
           x: 0,
           y: 0,
-          z: 45,
+          z: CAMERA_DIST,
           duration: duration,
           ease: isMobile ? "power2.inOut" : "power3.inOut"
         }, 0);
@@ -366,7 +391,7 @@ const AnimatedCarousel = ({
                   ease: isMobile ? "power2.out" : "back.out(1.3)",
                   onUpdate: isMobile ? null : () => {
                     if (ref.current) {
-                      ref.current.lookAt(camera.position);
+                      faceCamera(ref.current, camera);
                     }
                   }
                 }
@@ -427,11 +452,7 @@ const AnimatedCarousel = ({
         const newColor = new THREE.Color("white");
         backgroundRef.current = newColor;
       }
-    } else if (isMobile) {
-      // Mobile: tocar la imagen seleccionada abre el proyecto
-      setShowCollection(true);
-      setCollection(imageUrls[index]);
-    } else {
+    } else if (!isMobile) {
       resetImagePositions();
     }
   }, [selectedImage, isInitializing, imageUrls, isMobile]);
@@ -446,13 +467,6 @@ const AnimatedCarousel = ({
     }
 
     setIsImageUpFront(true);
-
-    if (setSelectedProjectInfo) {
-      const imageUrl = imageUrls[index];
-      const info = projectInfo[imageUrl];
-      console.log("Enviando información del proyecto:", info);
-      setSelectedProjectInfo(info);
-    }
 
     timelineRef.current = gsap.timeline({
       onComplete: () => {
@@ -482,26 +496,41 @@ const AnimatedCarousel = ({
     const planeH = (params.height || (isMobile ? 3.2 : 5)) * planeScale;
     const planeW = (params.width || planeH) * planeScale;
     const tanHalf = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const fitH = isMobile ? 0.5 : 0.75;  // fracción máx. del alto de pantalla
-    const fitW = isMobile ? 0.7 : 0.6;   // fracción máx. del ancho de pantalla
+    // Deja aire abajo para el nombre + año y la nav
+    // En mobile casi a sangre (margen mínimo a los lados, como i-d)
+    // fracción máx. del alto de pantalla. Mobile: la foto (centrada) deja abajo
+    // nav (108px) + nombre (18px) + 16px de aire a cada lado del nombre
+    const SELECTED_LIFT = 0; // fracción del alto de pantalla
+    const fitH = isMobile ? 0.76 : 0.66;
+    const fitW = isMobile ? 0.86 : 0.55;  // fracción máx. del ancho de pantalla
     const fixedDistance = Math.max(
       planeH / (fitH * 2 * tanHalf),
       planeW / (fitW * 2 * tanHalf * camera.aspect)
     );
+    if (setSelectedProjectInfo) {
+      const info = projectInfo[imageUrls[index]];
+      // Alto de la foto como fracción de la pantalla (centrada): App la usa para
+      // dejar el nombre a la misma distancia de la foto que de la nav
+      const photoFrac = planeH / (2 * tanHalf * fixedDistance);
+      setSelectedProjectInfo(info && { ...info, photoFrac, liftFrac: SELECTED_LIFT });
+    }
+
     // La imagen va al origen; la cámara queda a distancia fija en su dirección actual
     const targetPosition = direction.clone().multiplyScalar(-fixedDistance);
 
     // Keep original smooth animation
+    // Sube apenas la foto para dar más aire abajo (nombre + nav)
+    const liftY = SELECTED_LIFT * 2 * tanHalf * fixedDistance;
     timelineRef.current.to(selectedRef.position, {
       x: 0,
-      y: 0,
+      y: liftY,
       z: 0,
       duration: 1.2,
       ease: "power3.inOut",
       force3D: true,
       onUpdate: () => {
         if (selectedRef) {
-          selectedRef.lookAt(camera.position);
+          faceCamera(selectedRef, camera);
         }
       }
     }, 0);
@@ -577,7 +606,7 @@ const AnimatedCarousel = ({
     if (!animationInProgressRef.current && (!isMobile || frameCount.current % 4 === 0)) {
       refs.forEach(ref => {
         if (ref.current) {
-          ref.current.lookAt(camera.position);
+          faceCamera(ref.current, camera);
         }
       });
     }
@@ -585,17 +614,32 @@ const AnimatedCarousel = ({
     if (isImageUpFront && scene.background) {
       scene.background.lerp(backgroundRef.current, isMobile ? 0.1 : 0.05);
     } else if (scene.background) {
-      scene.background.lerp(new THREE.Color('white'), isMobile ? 0.1 : 0.05);
+      // con una imagen en hover el entorno también se apaga un poco
+      const dimmed = hoveredIndex !== null && selectedImage.length === 0;
+      scene.background.lerp(dimmed ? HOVER_BG : WHITE_BG, isMobile ? 0.1 : 0.08);
     }
 
-    // SLOWER ROTATION ON MOBILE
+    // Misma velocidad que en desktop: en mobile se compensa el salto de frames
     if (groupRef.current &&
       !isImageUpFront &&
       !isInitializing &&
       !animationInProgressRef.current &&
       !isUserInactive &&
       !isManuallyPaused) {
-      groupRef.current.rotation.y += isMobile ? 0.0001 : 0.0003;
+      groupRef.current.rotation.y += 0.0003 * (isMobile ? skipFrames : 1);
+    }
+
+    // Arrastre: la rotación persigue al objetivo con easing muy suave,
+    // y al soltar sigue un poco por inercia hasta frenar
+    const drag = dragRef.current;
+    if (groupRef.current && !isImageUpFront && !animationInProgressRef.current) {
+      if (!drag.active) {
+        drag.target += drag.velocity;
+        drag.velocity *= 0.94;
+      }
+      const step = (drag.target - drag.applied) * (isMobile ? 0.12 : 0.06);
+      drag.applied += step;
+      groupRef.current.rotation.y += step;
     }
   });
 
@@ -647,7 +691,7 @@ const AnimatedCarousel = ({
       }
     });
 
-    tweenCameraOrbit(timelineRef.current, camera, { x: 0, y: 0, z: 45 }, {
+    tweenCameraOrbit(timelineRef.current, camera, { x: 0, y: 0, z: CAMERA_DIST }, {
       duration: duration,
       ease: isMobile ? "power2.inOut" : "power3.inOut"
     }, 0);
@@ -669,7 +713,7 @@ const AnimatedCarousel = ({
             duration: duration,
             ease: isMobile ? "power2.inOut" : "power3.inOut",
             onUpdate: () => {
-              if (ref.current) ref.current.lookAt(camera.position);
+              if (ref.current) faceCamera(ref.current, camera);
             }
           }, 0);
           return;
@@ -698,7 +742,7 @@ const AnimatedCarousel = ({
           force3D: !isMobile,
           onUpdate: isMobile ? null : () => {
             if (ref.current) {
-              ref.current.lookAt(camera.position);
+              faceCamera(ref.current, camera);
             }
           }
         }, delay);
@@ -743,13 +787,86 @@ const AnimatedCarousel = ({
     };
 
     // Add both mouse and touch event listeners
-    const eventType = isMobile ? 'touchstart' : 'mousedown';
-    document.addEventListener(eventType, handleClickOutside, { passive: false });
+    if (isMobile) return undefined;
+    const eventType = 'mousedown';
+    document.addEventListener(eventType, handleClickOutside);
 
     return () => {
       document.removeEventListener(eventType, handleClickOutside);
     };
-  }, [refs, isInitializing, resetImagePositions, selectedImage, isMobile]);
+  }, [refs, isInitializing, isImageUpFront, resetImagePositions, selectedImage, isMobile]);
+
+  // On touch, test the selected plane directly: other meshes must not steal the tap.
+  useEffect(() => {
+    if (!isMobile || !isImageUpFront) return;
+    let start = null;
+    const onStart = (event) => {
+      const touch = event.touches[0];
+      if (touch) start = { x: touch.clientX, y: touch.clientY };
+    };
+    const onEnd = (event) => {
+      const touch = event.changedTouches[0];
+      if (!start || !touch || animationInProgressRef.current || Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > 10) return;
+      const index = selectedImage[selectedImage.length - 1];
+      const mesh = refs[index]?.current?.children[0];
+      const camera = cameraRef.current;
+      if (!mesh || !camera) return;
+      mouse.set((touch.clientX / window.innerWidth) * 2 - 1, -(touch.clientY / window.innerHeight) * 2 + 1);
+      raycaster.setFromCamera(mouse, camera);
+      if (raycaster.intersectObject(mesh).length) {
+        setCollection(imageUrls[index]);
+        setShowCollection(true);
+      } else {
+        resetImagePositions();
+      }
+      start = null;
+    };
+    document.addEventListener('touchstart', onStart, { passive: true });
+    document.addEventListener('touchend', onEnd, { passive: true });
+    return () => {
+      document.removeEventListener('touchstart', onStart);
+      document.removeEventListener('touchend', onEnd);
+    };
+  }, [isMobile, isImageUpFront, selectedImage, refs, imageUrls, setCollection, setShowCollection, resetImagePositions]);
+
+  // Arrastrar con mouse / dedo para girar el carrusel, independiente del click
+  useEffect(() => {
+    const drag = dragRef.current;
+    const SENS = 0.0018; // rad por px: lento a propósito
+
+    const onDown = (e) => {
+      drag.moved = false; // cada press arranca limpio: si no, un drag viejo bloquea el próximo click
+      if (e.target.tagName !== 'CANVAS' || isImageUpFront) return;
+      drag.active = true;
+      drag.moved = false;
+      drag.startX = drag.lastX = e.clientX;
+      drag.velocity = 0;
+    };
+    const onMove = (e) => {
+      if (!drag.active) return;
+      const dx = e.clientX - drag.lastX;
+      drag.lastX = e.clientX;
+      if (Math.abs(e.clientX - drag.startX) > 6) drag.moved = true;
+      drag.target += dx * SENS;
+      drag.velocity = drag.velocity * 0.6 + dx * SENS * 0.4;
+    };
+    const onUp = () => {
+      if (!drag.active) return;
+      drag.active = false;
+      drag.velocity = Math.max(-0.01, Math.min(0.01, drag.velocity * 0.5));
+    };
+
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  }, [isImageUpFront]);
 
   // Keyboard controls (desktop only)
   useEffect(() => {
@@ -809,10 +926,12 @@ const AnimatedCarousel = ({
           position={originalPositions[index]}
           textureUrl={texture}
           refProp={refs[index]}
-          onClick={() => handleClick(index)}
+          onClick={() => { if (!dragRef.current.moved) handleClick(index); }}
           isHighQuality={isHighQuality}
           isSelected={selectedImage.includes(index)}
           hoverDisabled={isInitializing}
+          isDimmed={hoveredIndex !== null && hoveredIndex !== index && selectedImage.length === 0}
+          onHoverChange={(on) => handleHoverChange(index, on)}
           isMobile={isMobile}
           onGalleryToggle={() => {
             setShowCollection(true);

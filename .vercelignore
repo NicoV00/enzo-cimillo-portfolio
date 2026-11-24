@@ -1,0 +1,329 @@
+# Solo afecta lo que sube el CLI de Vercel: no borra nada local.
+node_modules
+dist
+.git
+*.py
+
+# Assets que el código no usa (ver análisis de referencias)
+/public/logoweb.png
+/public/vite.png
+/public/fonts/fonnts.com-Suisse_Intl_Mono.ttf
+/public/fonts/PPEditorialNew-Italic.otf
+/public/fonts/PPEditorialNew-Regular.otf
+/public/fonts/PPEditorialNew-Regular.woff
+/public/fonts/PPEditorialNew-Regular.woff2
+/public/fonts/PPEditorialNew-UltraboldItalic.otf
+/public/fonts/PPEditorialNew-Ultralight.woff
+/public/fonts/PPEditorialNew-Ultralight.woff2
+/public/fonts/PPFraktionMono-Bold.woff
+/public/fonts/PPFraktionMono-Bold.woff2
+/public/images/image1.png
+/public/images/image2.png
+/public/images/image3.png
+/public/images/KA_PUENTE1.1-04.jpg
+/public/images/MDLST_VAGÓN2_NOSONFINALES-01.jpg
+/public/images/AMOUR/ADELAMOUR-1.jpg
+/public/images/AMOUR/ADELAMOUR-2.jpg
+/public/images/AMOUR/ADELAMOUR-4.jpg
+/public/images/AMOUR/ADELAMOUR-5.jpg
+/public/images/AMOUR/ADELAMOUR-6.jpg
+/public/images/AMOUR/ADELAMOUR-7.jpg
+/public/images/AMOUR/ADELAMOUR-8.jpg
+/public/images/AMOUR/sape.jpg
+/public/images/AMOUR/resized/ADELAMOUR-1.jpg
+/public/images/AMOUR/resized/ADELAMOUR-2.jpg
+/public/images/AMOUR/resized/ADELAMOUR-4.jpg
+/public/images/AMOUR/resized/ADELAMOUR-5.jpg
+/public/images/AMOUR/resized/ADELAMOUR-6.jpg
+/public/images/AMOUR/resized/ADELAMOUR-7.jpg
+/public/images/AMOUR/resized/ADELAMOUR-8.jpg
+/public/images/AMOUR/resized/sape.jpg
+/public/images/AMOUR/webp/portada.webp
+/public/images/ANA/ADELAMOUR-8.jpg
+/public/images/ANA/L1.jpg
+/public/images/ANA/L10.jpg
+/public/images/ANA/L11.jpg
+/public/images/ANA/L12.jpg
+/public/images/ANA/L13.jpg
+/public/images/ANA/L3.jpg
+/public/images/ANA/L3.png
+/public/images/ANA/L4.jpg
+/public/images/ANA/L5.jpg
+/public/images/ANA/L6.jpg
+/public/images/ANA/L7.jpg
+/public/images/ANA/L8.jpg
+/public/images/ANA/L9.jpg
+/public/images/ANA/resized/ADELAMOUR-8.jpg
+/public/images/ANA/resized/L1.jpg
+/public/images/ANA/resized/L10.jpg
+/public/images/ANA/resized/L11.jpg
+/public/images/ANA/resized/L12.jpg
+/public/images/ANA/resized/L13.jpg
+/public/images/ANA/resized/L3.jpg
+/public/images/ANA/resized/L4.jpg
+/public/images/ANA/resized/L5.jpg
+/public/images/ANA/resized/L6.jpg
+/public/images/ANA/resized/L7.jpg
+/public/images/ANA/resized/L8.jpg
+/public/images/ANA/resized/L9.jpg
+/public/images/blua/1Assewww22t 4@2xAsset 3sssdrdrdd.png
+/public/images/blua/b2.jpg
+/public/images/blua/b3.jpg
+/public/images/blua/b4.jpg
+/public/images/blua/b5.jpg
+/public/images/blua/b6.jpg
+/public/images/blua/f1.png
+/public/images/blua/f2.png
+/public/images/blua/f3.png
+/public/images/blua/f4.png
+/public/images/blua/f6.png
+/public/images/blua/resized/b2.jpg
+/public/images/blua/resized/b3.jpg
+/public/images/blua/resized/b4.jpg
+/public/images/blua/resized/b5.jpg
+/public/images/blua/resized/b6.jpg
+/public/images/blua/webp/b2.webp
+/public/images/blua/webp/b3.webp
+/public/images/blua/webp/b4.webp
+/public/images/blua/webp/b5.webp
+/public/images/blua/webp/b6.webp
+/public/images/IDENTIDAD/IDENTIDAD MUF-2.jpg
+/public/images/IDENTIDAD/IDENTIDAD MUF-3.jpg
+/public/images/IDENTIDAD/IDENTIDAD MUF-4.png
+/public/images/IDENTIDAD/IDENTIDAD MUF-5.jpg
+/public/images/IDENTIDAD/IDENTIDAD MUF-6.jpg
+/public/images/IDENTIDAD/IDENTIDAD MUF-7.jpg
+/public/images/IDENTIDAD/resized/IDENTIDAD MUF-2.jpg
+/public/images/IDENTIDAD/resized/IDENTIDAD MUF-3.jpg
+/public/images/IDENTIDAD/resized/IDENTIDAD MUF-5.jpg
+/public/images/IDENTIDAD/resized/IDENTIDAD MUF-6.jpg
+/public/images/IDENTIDAD/resized/IDENTIDAD MUF-7.jpg
+/public/images/KABOA/KABOA-2.jpg
+/public/images/KABOA/KABOA-3.jpg
+/public/images/KABOA/KABOA-4.jpg
+/public/images/KABOA/KABOA-5.jpg
+/public/images/KABOA/KABOA-6.jpg
+/public/images/KABOA/KABOA-7.mp4
+/public/images/KABOA/KABOA-8.jpg
+/public/images/KABOA/KABOA-9.jpg
+/public/images/KABOA/resized/KABOA-2.jpg
+/public/images/KABOA/resized/KABOA-3.jpg
+/public/images/KABOA/resized/KABOA-4.jpg
+/public/images/KABOA/resized/KABOA-5.jpg
+/public/images/KABOA/resized/KABOA-6.jpg
+/public/images/KABOA/resized/KABOA-8.jpg
+/public/images/KABOA/resized/KABOA-9.jpg
+/public/images/LENOIR/LENOIR-2.jpg
+/public/images/LENOIR/LENOIR-3.jpg
+/public/images/LENOIR/LENOIR-4.jpg
+/public/images/LENOIR/LENOIR-5.jpg
+/public/images/LENOIR/LENOIR-6.jpg
+/public/images/LENOIR/LENOIR-7.jpg
+/public/images/LENOIR/LENOIR-8.jpg
+/public/images/LENOIR/resized/LENOIR-2.jpg
+/public/images/LENOIR/resized/LENOIR-3.jpg
+/public/images/LENOIR/resized/LENOIR-4.jpg
+/public/images/LENOIR/resized/LENOIR-5.jpg
+/public/images/LENOIR/resized/LENOIR-6.jpg
+/public/images/LENOIR/resized/LENOIR-7.jpg
+/public/images/LENOIR/resized/LENOIR-8.jpg
+/public/images/LOGOS/images/asset-smiley--contrasted.svg
+/public/images/LOGOS/images/asset-smiley--main.svg
+/public/images/LOGOS/images/asset-star.svg
+/public/images/LOGOS/images/asset-world.svg
+/public/images/LOGOS/images/aw-creative-developer.png
+/public/images/LOGOS/images/qr-code.svg
+/public/images/LOGOS/images/sprite-vanish.png
+/public/images/MARCOS/MARCOSMUF-10.jpg
+/public/images/MARCOS/MARCOSMUF-2.jpg
+/public/images/MARCOS/MARCOSMUF-3.jpg
+/public/images/MARCOS/MARCOSMUF-4.jpg
+/public/images/MARCOS/MARCOSMUF-6.jpg
+/public/images/MARCOS/MARCOSMUF-7.jpg
+/public/images/MARCOS/MARCOSMUF-8.jpg
+/public/images/MARCOS/MARCOSMUF-9.jpg
+/public/images/MARCOS/resized/MARCOSMUF-10.jpg
+/public/images/MARCOS/resized/MARCOSMUF-2.jpg
+/public/images/MARCOS/resized/MARCOSMUF-3.jpg
+/public/images/MARCOS/resized/MARCOSMUF-4.jpg
+/public/images/MARCOS/resized/MARCOSMUF-6.jpg
+/public/images/MARCOS/resized/MARCOSMUF-7.jpg
+/public/images/MARCOS/resized/MARCOSMUF-8.jpg
+/public/images/MARCOS/resized/MARCOSMUF-9.jpg
+/public/images/MDLST/MDLST-10.jpg
+/public/images/MDLST/MDLST-11.jpg
+/public/images/MDLST/MDLST-12.jpg
+/public/images/MDLST/MDLST-13.jpg
+/public/images/MDLST/MDLST-2.png
+/public/images/MDLST/MDLST-3.png
+/public/images/MDLST/MDLST-4.png
+/public/images/MDLST/MDLST-6.jpg
+/public/images/MDLST/MDLST-7.jpg
+/public/images/MDLST/MDLST-8.jpg
+/public/images/MDLST/MDLST-9.mp4
+/public/images/MDLST/resized/MDLST-10.jpg
+/public/images/MDLST/resized/MDLST-11.jpg
+/public/images/MDLST/resized/MDLST-12.jpg
+/public/images/MDLST/resized/MDLST-13.jpg
+/public/images/MDLST/resized/MDLST-6.jpg
+/public/images/MDLST/resized/MDLST-7.jpg
+/public/images/MDLST/resized/MDLST-8.jpg
+/public/images/PASARELA/PASARELA MUF-1.jpg
+/public/images/PASARELA/PASARELA MUF-10.jpg
+/public/images/PASARELA/PASARELA MUF-11.jpg
+/public/images/PASARELA/PASARELA MUF-13.jpg
+/public/images/PASARELA/PASARELA MUF-2.jpg
+/public/images/PASARELA/PASARELA MUF-3.jpg
+/public/images/PASARELA/PASARELA MUF-4.jpg
+/public/images/PASARELA/PASARELA MUF-5.jpg
+/public/images/PASARELA/PASARELA MUF-7.jpg
+/public/images/PASARELA/PASARELA MUF-8.jpg
+/public/images/PASARELA/resized/PASARELA MUF-1.jpg
+/public/images/PASARELA/resized/PASARELA MUF-10.jpg
+/public/images/PASARELA/resized/PASARELA MUF-11.jpg
+/public/images/PASARELA/resized/PASARELA MUF-13.jpg
+/public/images/PASARELA/resized/PASARELA MUF-2.jpg
+/public/images/PASARELA/resized/PASARELA MUF-3.jpg
+/public/images/PASARELA/resized/PASARELA MUF-4.jpg
+/public/images/PASARELA/resized/PASARELA MUF-5.jpg
+/public/images/PASARELA/resized/PASARELA MUF-7.jpg
+/public/images/PASARELA/resized/PASARELA MUF-8.jpg
+/public/images/PLATA/PLATA-10.png
+/public/images/PLATA/PLATA-12.jpg
+/public/images/PLATA/PLATA-13.jpg
+/public/images/PLATA/PLATA-3.jpg
+/public/images/PLATA/PLATA-6.jpg
+/public/images/PLATA/PLATA-9.jpg
+/public/images/PLATA/resized/PLATA-12.jpg
+/public/images/PLATA/resized/PLATA-13.jpg
+/public/images/PLATA/resized/PLATA-3.jpg
+/public/images/PLATA/resized/PLATA-6.jpg
+/public/images/PLATA/resized/PLATA-9.jpg
+/public/images/projecto/NWB&W-03.jpg
+/public/images/projecto/NWB&W-04.jpg
+/public/images/projecto/NWB&W-05.jpg
+/public/images/projecto/NWB&W-06.jpg
+/public/images/projecto/NWB&W-07.jpg
+/public/images/projecto/NWB&W-08.jpg
+/public/images/projecto/NWB&W-14.jpg
+/public/images/projecto/NWB&W-15.jpg
+/public/images/projecto/NWB&W-25.jpg
+/public/images/projecto/NWB&W-28.jpg
+/public/images/projecto/NWB&W-30.jpg
+/public/images/projecto/resized/NWB&W-03.jpg
+/public/images/projecto/resized/NWB&W-04.jpg
+/public/images/projecto/resized/NWB&W-05.jpg
+/public/images/projecto/resized/NWB&W-06.jpg
+/public/images/projecto/resized/NWB&W-07.jpg
+/public/images/projecto/resized/NWB&W-08.jpg
+/public/images/projecto/resized/NWB&W-14.jpg
+/public/images/projecto/resized/NWB&W-15.jpg
+/public/images/projecto/resized/NWB&W-25.jpg
+/public/images/projecto/resized/NWB&W-28.jpg
+/public/images/projecto/resized/NWB&W-30.jpg
+/public/images/projecto/webp/NWB&W-03.webp
+/public/images/projecto/webp/NWB&W-04.webp
+/public/images/projecto/webp/NWB&W-05.webp
+/public/images/projecto/webp/NWB&W-06.webp
+/public/images/projecto/webp/NWB&W-07.webp
+/public/images/projecto/webp/NWB&W-08.webp
+/public/images/projecto/webp/NWB&W-14.webp
+/public/images/projecto/webp/NWB&W-15.webp
+/public/images/projecto/webp/NWB&W-25.webp
+/public/images/projecto/webp/NWB&W-28.webp
+/public/images/projecto/webp/NWB&W-30.webp
+/public/images/TEO/asd.jpg
+/public/images/TEO/U1.png
+/public/images/TEO/V2.jpg
+/public/images/TEO/V3.jpg
+/public/images/TEO/V4.jpg
+/public/images/TEO/V5.jpg
+/public/images/TEO/V6.jpg
+/public/images/TEO/V7.jpg
+/public/images/TEO/V8.jpg
+/public/images/TEO/V9.jpg
+/public/images/TEO/x.jpg
+/public/images/TEO/resized/asd.jpg
+/public/images/TEO/resized/V2.jpg
+/public/images/TEO/resized/V3.jpg
+/public/images/TEO/resized/V4.jpg
+/public/images/TEO/resized/V5.jpg
+/public/images/TEO/resized/V6.jpg
+/public/images/TEO/resized/V7.jpg
+/public/images/TEO/resized/V8.jpg
+/public/images/TEO/resized/V9.jpg
+/public/images/TEO/resized/x.jpg
+/public/images/TEO/webp/V3.webp
+/public/images/TEO/webp/V4.webp
+/public/images/TEO/webp/x.webp
+/public/images/X/@enzocimillo_ex-_10.jpg
+/public/images/X/@enzocimillo_ex-_11.jpg
+/public/images/X/@enzocimillo_ex-_2.jpg
+/public/images/X/@enzocimillo_ex-_3.jpg
+/public/images/X/@enzocimillo_ex-_4.jpg
+/public/images/X/@enzocimillo_ex-_5.jpg
+/public/images/X/@enzocimillo_ex-_6.jpg
+/public/images/X/@enzocimillo_ex-_7.jpg
+/public/images/X/@enzocimillo_ex-_8.jpg
+/public/images/X/@enzocimillo_ex-_9.jpg
+/public/images/X/resized/@enzocimillo_ex-_10.jpg
+/public/images/X/resized/@enzocimillo_ex-_11.jpg
+/public/images/X/resized/@enzocimillo_ex-_2.jpg
+/public/images/X/resized/@enzocimillo_ex-_3.jpg
+/public/images/X/resized/@enzocimillo_ex-_4.jpg
+/public/images/X/resized/@enzocimillo_ex-_5.jpg
+/public/images/X/resized/@enzocimillo_ex-_6.jpg
+/public/images/X/resized/@enzocimillo_ex-_7.jpg
+/public/images/X/resized/@enzocimillo_ex-_8.jpg
+/public/images/X/resized/@enzocimillo_ex-_9.jpg
+/public/models/1964_impala.glb
+/public/models/1965-2002_rally_cars.glb
+/public/models/1970_chevrolet_camaro_pro_touring.glb
+/public/models/2005_tripod_rig.glb
+/public/models/2021_lamborghini_countach_lpi_800-4.glb
+/public/models/audi_quattro_s1.glb
+/public/models/bill_cypher.glb
+/public/models/boneys_birdhouse_chapter_1_-_bridge_creature.glb
+/public/models/chevrolet_cruze_monster_energy.glb
+/public/models/ford_capri_group_b.glb
+/public/models/ford_gt40_mkii.glb
+/public/models/ford_mustang_1965.glb
+/public/models/free_bmw_m3_e30.glb
+/public/models/free_merc_hovercar.glb
+/public/models/javascript_1.glb
+/public/models/low-poly-car-chevrolet-impala-1961_d.glb
+/public/models/nissan_fairlady_z_s30240z_1978.glb
+/public/models/old_rusty_car_2.glb
+/public/models/porsche_911_930_turbo_1975.glb
+/public/models/python.glb
+/public/models/python_programming_language.glb
+/public/models/react_logo.glb
+/public/models/sci-fi_hallway_high_poly.glb
+/public/models/sf_hallway.glb
+/public/models/three.js.glb
+/public/models/webgl_logo.glb
+/public/styles/ascii-art (1).txt
+/public/styles/fonts.css
+/public/videos/ENTRADA WEB-1.mp4
+/public/videos/entradaweb_vertical.mp4
+/public/videos/ENTRADA_WEB2.1.mp4
+/public/videos/ENTRADA_WEB2.2.mp4
+/public/images/AMOUR/resized/portada.jpg
+/public/images/ANA/webp/ADELAMOUR-8.webp
+/public/images/CALDO/CALDO-3.mp4
+/public/images/CALDO/CALDO-4.mp4
+/public/images/CALDO/resized/CALDO-1 (PORTADA).jpg
+/public/images/IDENTIDAD/resized/IDENTIDAD MUF-1 (PORTADA).jpg
+/public/images/KABOA/resized/KABOA-1.jpg
+/public/images/LENOIR/resized/LENOIR-1.jpg
+/public/images/MARCOS/resized/MARCOSMUF-5 (PORTADA).jpg
+/public/images/MDLST-1.png
+/public/images/PASARELA/resized/PASARELA MUF-12(PORTADA).jpg
+/public/images/PLATA-2.jpg
+/public/images/PLATA/resized/PLATA-2.jpg
+/public/images/TEO/resized/V1.jpg
+/public/images/X/resized/@enzocimillo_ex-_1.jpg
+/public/images/blua/.png
+/public/images/blua/b1.jpg
+/public/images/blua/resized/b1.jpg
+/public/images/covers/.webp

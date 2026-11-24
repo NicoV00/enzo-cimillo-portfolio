@@ -1,0 +1,119 @@
+/* Lenguaje de vidrio compartido (nav, cursores, botones).
+   Basado en el liquid glass de nicolasvalles.com: blur + saturación, borde superior
+   iluminado, glow interno suave y sombras en capas (nunca borde + sombra dura). */
+:root {
+  --g-ease: cubic-bezier(0.19, 1, 0.22, 1);
+  /* Forma de la marca: todo lo que es botón o cursor de vidrio es cápsula o círculo */
+  --g-radius: 999px;
+  /* mismo vidrio que la nav inferior (.bnav__container::before) */
+  /* Vidrio del ✕ del lab, en gris esmerilado: sobre fondos claros se seguía viendo
+     blanco, así que el tinte es un gris medio y el blur más fuerte (frosted) */
+  --g-dark-bg: rgba(72, 72, 72, 0.42);
+  --g-dark-blur: blur(30px) saturate(140%);
+  --g-edge:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 18px rgba(255, 255, 255, 0.05);
+  /* La luz: pega en el borde superior izquierdo y en el inferior derecho, cruzada,
+     y se apaga antes de que los dos brillos se toquen */
+  --g-shine: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.75) 0%,
+    rgba(255, 255, 255, 0) 24%,
+    rgba(255, 255, 255, 0) 76%,
+    rgba(255, 255, 255, 0.45) 100%);
+  /* Sombras: vienen de shadow-plugin (index.css) como --smooth-shadow-{sm..2xl}
+     y clases smooth-shadow-* */
+  /* Luz del vidrio, sin filo: dos resplandores difusos dentro de la superficie,
+     arriba a la izquierda (fuerte) y abajo a la derecha (suave), que se apagan
+     mucho antes de encontrarse. Ningún borde dibujado */
+  --g-sheen:
+    radial-gradient(90% 160% at 0% 0%, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.1) 32%, rgba(255, 255, 255, 0) 58%),
+    radial-gradient(80% 150% at 100% 100%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 30%, rgba(255, 255, 255, 0) 55%);
+  --g-shadow-soft:
+    0 1px 1px rgba(0, 0, 0, 0.06),
+    0 4px 12px -4px rgba(0, 0, 0, 0.14);
+}
+
+/* Botón de texto con el vidrio de la nav (mismo tamaño que el cursor "enter portfolio") */
+.g-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: var(--g-radius);
+  font-family: 'Inter Tight Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  text-transform: lowercase;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.35s var(--g-ease), background 0.25s ease, color 0.25s ease;
+}
+.g-btn svg { width: 14px; height: 10px; flex: none; }
+
+/* Superficie oscura de vidrio, la misma que la nav y la X del cursor.
+   Va después de .g-btn: su `all: unset` borraba el vidrio (solo se veía en hover) */
+.g-dark {
+  color: #fff;
+  background: var(--g-dark-bg);
+  -webkit-backdrop-filter: var(--g-dark-blur);
+  backdrop-filter: var(--g-dark-blur);
+  box-shadow: var(--g-edge), var(--g-shadow-soft);
+}
+
+.g-btn:hover { background: rgba(0, 0, 0, 0.42); }
+.g-btn:active { transform: scale(0.94); background: rgba(244, 244, 244, 0.96); color: #111; }
+.g-btn:focus-visible { outline: 1px solid rgba(255, 255, 255, 0.7); outline-offset: 3px; }
+
+/* Luz enfrentada: un reflejo nace en la esquina superior izquierda y otro en la
+   inferior derecha; cada uno se difumina a lo largo de sus dos bordes y se apaga
+   antes de alcanzar al otro. El aro uniforme del vidrio queda casi apagado. */
+.g-light {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 0 18px rgba(255, 255, 255, 0.04),
+    var(--g-shadow-soft);
+}
+.g-light::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 130% at 0% 0%,
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(255, 255, 255, 0.35) 30%,
+      rgba(255, 255, 255, 0) 68%),
+    radial-gradient(60% 130% at 100% 100%,
+      rgba(255, 255, 255, 0.6) 0%,
+      rgba(255, 255, 255, 0.22) 30%,
+      rgba(255, 255, 255, 0) 68%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  transition: opacity 0.25s ease;
+}
+.g-light:active::before { opacity: 0; }
+/* Botones cuadrados: la luz avanza lo mismo por el borde superior y el lateral */
+.g-light.--square::before {
+  background:
+    radial-gradient(circle at 0% 0%,
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(255, 255, 255, 0.35) 30%,
+      rgba(255, 255, 255, 0) 75%),
+    radial-gradient(circle at 100% 100%,
+      rgba(255, 255, 255, 0.6) 0%,
+      rgba(255, 255, 255, 0.22) 30%,
+      rgba(255, 255, 255, 0) 75%);
+}

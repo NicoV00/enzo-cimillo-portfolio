@@ -36,9 +36,9 @@ server: {
           // Separar vendor chunks para mejor caching
           'react-vendor': ['react', 'react-dom'],
           'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
-          'mui-vendor': ['@mui/material', '@mui/icons-material'],
-          'gsap-vendor': ['gsap', '@gsap/react'],
-          'lenis-vendor': ['lenis', '@studio-freight/lenis'],
+          'mui-vendor': ['@mui/material'],
+          'gsap-vendor': ['gsap'],
+          'lenis-vendor': ['@studio-freight/lenis'],
         },
       },
     },

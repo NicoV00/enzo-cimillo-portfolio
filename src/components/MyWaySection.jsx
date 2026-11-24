@@ -1,6 +1,14 @@
 // src/components/MyWaySection.jsx
 import React, { useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
+import './glass.css';
+
+// Flecha fina, misma línea que la del menú (ArrowIcon)
+const BackArrow = () => (
+  <svg viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="square">
+    <path d="M13 5H1.6M5.4 1.2L1.6 5l3.8 3.8" />
+  </svg>
+);
 
 // Declaración de la fuente Helvetica-Bold
 const fontFaceStyle = `
@@ -13,7 +21,11 @@ const fontFaceStyle = `
   }
 `;
 
-const MyWaySection = ({ onBack, onBackToGalleries }) => {
+// Líneas de perspectiva: viewBox 1200x1000, el punto de fuga queda en (600, 0).
+// Cada línea arranca donde termina la línea recta del plano normal (cada 1/12 del ancho).
+const PERSPECTIVE_LINES = Array.from({ length: 37 }, (_, i) => `M${(i - 12) * 100} 1000L600 0`).join('');
+
+const MyWaySection = ({ onBack }) => {
   const sectionRef = useRef(null);
   const scrollRef = useRef({ p: 0, sp: 0 });
 
@@ -133,6 +145,43 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
             }
           }}
         >
+          {/* Líneas que fugan hasta el horizonte del plano distorsionado.
+              Fuga = centro del wrapper (0.75 * padding) + perspective / distortion (0.7em, 0.85em en móvil) */}
+          <Box
+            component="svg"
+            viewBox="0 0 1200 1000"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              width: '100%',
+              height: 'calc(var(--padding) * 0.75 + 0.7em)',
+              pointerEvents: 'none',
+              overflow: 'visible',
+
+              '@media (max-width: 768px)': {
+                height: 'calc(var(--padding) * 0.75 + 0.85em)',
+              }
+            }}
+          >
+            <defs>
+              <linearGradient id="myway-lines-fade" gradientUnits="userSpaceOnUse" x1="0" y1="1000" x2="0" y2="0">
+                <stop offset="0" stopColor="#000" stopOpacity="0.24" />
+                <stop offset="0.7" stopColor="#000" stopOpacity="0.14" />
+                <stop offset="1" stopColor="#000" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              d={PERSPECTIVE_LINES}
+              fill="none"
+              stroke="url(#myway-lines-fade)"
+              strokeWidth="1"
+              vectorEffect="non-scaling-stroke"
+            />
+          </Box>
+
           {/* Distorted wrapper */}
           <Box
             sx={{
@@ -156,8 +205,6 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
                 left: '-100%',
                 width: '300%',
                 height: 'calc(var(--padding) * 1.05 + 5rem)',
-                // Líneas de perspectiva: en el plano distorsionado fugan hacia atrás, en el normal bajan rectas
-                backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.14) 0 1px, transparent 1px calc(100% / 36))',
                 transformOrigin: '50% 100%',
                 transform: `matrix3d(
                   1,
@@ -202,7 +249,7 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
                   404
                 </Box>
                 
-                {/* Botón volver a galerías */}
+                {/* Botón volver al carrusel */}
                 <Box
                   sx={{
                     marginTop: '6rem',
@@ -210,30 +257,9 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
                     justifyContent: 'center',
                   }}
                 >
-                  <Box
-                    component="button"
-                    onClick={onBackToGalleries}
-                    sx={{
-                      padding: '12px 24px',
-                      backgroundColor: '#000',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      fontFamily: 'Helvetica-Bold, Helvetica, Arial, sans-serif',
-                      textTransform: 'none',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        backgroundColor: '#333',
-                        transform: 'translateY(-2px)',
-                      },
-                    }}
-                  >
-                    ← volver a las galerías
-                  </Box>
+                  <button type="button" className="g-btn g-dark" onClick={onBack}>
+                    <BackArrow /> volver al carrusel
+                  </button>
                 </Box>
               </Box>
             </Box>
@@ -258,7 +284,7 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
                 width: '300%',
                 height: '100%',
                 // Líneas de perspectiva: en el plano distorsionado fugan hacia atrás, en el normal bajan rectas
-                backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.14) 0 1px, transparent 1px calc(100% / 36))',
+                backgroundImage: 'repeating-linear-gradient(90deg, rgba(0,0,0,0.24) 0 1px, transparent 1px calc(100% / 36))',
               }}
             >
               <Box
@@ -293,30 +319,9 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
                     justifyContent: 'center',
                   }}
                 >
-                  <Box
-                    component="button"
-                    onClick={onBackToGalleries}
-                    sx={{
-                      padding: '12px 24px',
-                      backgroundColor: '#000',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      fontFamily: 'Helvetica-Bold, Helvetica, Arial, sans-serif',
-                      textTransform: 'none',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        backgroundColor: '#333',
-                        transform: 'translateY(-2px)',
-                      },
-                    }}
-                  >
-                    ← volver a las galerías
-                  </Box>
+                  <button type="button" className="g-btn g-dark" onClick={onBack}>
+                    <BackArrow /> volver al carrusel
+                  </button>
                 </Box>
               </Box>
             </Box>
@@ -324,35 +329,13 @@ const MyWaySection = ({ onBack, onBackToGalleries }) => {
         </Box>
 
         {/* Botón volver arriba (fijo) */}
-        <button 
+        <button
+          type="button"
+          className="g-btn g-dark"
           onClick={onBack}
-          style={{
-            position: 'fixed',
-            top: '20px',
-            left: '20px',
-            zIndex: 1000,
-            padding: '12px 24px',
-            backgroundColor: '#000',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            transition: 'all 0.3s ease',
-            fontFamily: 'Helvetica-Bold, Helvetica, Arial, sans-serif'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = '#333';
-            e.target.style.transform = 'translateY(-2px)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = '#000';
-            e.target.style.transform = 'translateY(0)';
-          }}
+          style={{ position: 'fixed', top: '20px', left: '20px', zIndex: 1000 }}
         >
-          ← volver al carrusel
+          <BackArrow /> volver al carrusel
         </button>
       </Box>
     </>

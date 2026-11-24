@@ -1,0 +1,55 @@
+/* Cursores del carrusel ("enter portfolio" y X) con el vidrio oscuro de la nav */
+html.pcursor-on,
+html.pcursor-on * { cursor: none !important; }
+
+.pcursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  box-sizing: border-box;
+  border-radius: var(--g-radius);
+  transform: translate(-50%, -50%) scale(0.9);
+  opacity: 0;
+  will-change: translate;
+  transition:
+    opacity 0.2s ease,
+    transform 0.35s var(--g-ease),
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+.pcursor--enter {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  font-family: 'Inter Tight Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+.pcursor--enter.--press::before { opacity: 0; }  /* la luz es .g-light (glass.css) */
+
+.pcursor--x {
+  z-index: 2147483646;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+}
+.pcursor--x svg { width: 14px; height: 14px; }
+
+/* Visible solo el cursor del modo actual (PortfolioButton.jsx → setMode) */
+.pcursor.--on { opacity: 1; transform: translate(-50%, -50%); }
+
+/* Presionado: segmento blanco sólido, como los botones activos del Glass Lab */
+.pcursor.--on.--press { transform: translate(-50%, -50%) scale(0.94); }
+.pcursor--enter.--press {
+  background: rgba(244, 244, 244, 0.96);
+  color: #111;
+}

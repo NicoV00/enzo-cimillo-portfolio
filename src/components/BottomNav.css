@@ -1,0 +1,350 @@
+/* Barra inferior: réplica del header v2 de i-d.co (mismos valores de su CSS) */
+.bnav {
+  --bnav-ease: cubic-bezier(0.19, 1, 0.22, 1);
+  --bnav-hover-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Morph pill <-> buscador: una sola curva (la de las hojas de iOS) y una sola
+     duración para subir, estirarse y redondearse. Si cada parte tiene su ritmo,
+     el ojo las ve separarse y el cierre parece que "se cae" */
+  --bnav-morph: cubic-bezier(0.32, 0.72, 0, 1);
+  --bnav-morph-t: 0.62s;
+  /* 60px de alto: radio 30 = cápsula, igual que las pills de adentro */
+  --bnav-radius: 30px;
+  --bnav-font: 'Inter Tight Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  position: fixed;
+  /* Centrado con flex y no con translateX(-50%): ese % se resolvía contra el
+     ancho inicial durante la transición y la barra aparecía corrida a la derecha */
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  bottom: 36px;
+  transform: translateY(0);
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform var(--bnav-morph-t) var(--bnav-morph);
+}
+/* Intro: la barra espera abajo hasta que la imagen terminó de llegar al centro */
+.bnav.--intro { opacity: 0; transform: translateY(32px); visibility: hidden; }
+/* Entra recién cuando la imagen ya se asentó: pausa de 0.45s y subida más lenta */
+.bnav.--in { transition: opacity 0.7s ease 0.45s, transform 1.1s var(--bnav-ease) 0.45s; }
+
+/* Búsqueda: la barra sube al centro de la pantalla (header__inner de i-d.co) */
+.bnav.--search { transform: translateY(calc(52px - 50dvh)); }
+
+.bnav-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(23.8px);
+  backdrop-filter: blur(23.8px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.5s var(--g-ease), visibility 0s linear 0.5s;
+}
+.bnav-overlay.--on { opacity: 1; visibility: visible; transition: opacity 0.5s var(--g-ease), visibility 0s; }
+/* Mientras el modal existe se oculta solo la pill de Menu: el panel ES esa pill
+   morfeando. Contact y Search quedan quietas detrás del velo */
+.bnav.--menu .bnav__menu { opacity: 0; transition: opacity 0.08s linear; pointer-events: none; }
+
+.bnav__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+.bnav__container {
+  position: relative;
+  flex-shrink: 0;
+  padding: 6px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  pointer-events: auto;
+  height: 60px;
+  box-sizing: border-box;
+  border-radius: var(--bnav-radius);
+  transition: width var(--bnav-morph-t) var(--bnav-morph);
+}
+
+/* Capa de vidrio: tinte suave + blur (fallback) / refracción SVG (Chromium) */
+.bnav__container::before {
+  content: "";
+  position: absolute;
+  /* En reposo el vidrio está escondido justo encima de la pill de Search (--g*,
+     medidos en openSearch). Al buscar se estira a todo el campo; al cerrar se
+     encoge de vuelta a esa pill y recién ahí se desvanece */
+  inset: var(--gt, 6px) var(--gr, 6px) var(--gb, 6px) var(--gl, 6px);
+  border-radius: 24px;
+  /* arranca con el tinte de la pill y se vuelve el vidrio oscuro del campo */
+  background-color: var(--glass-from, var(--g-dark-bg));
+  -webkit-backdrop-filter: var(--g-dark-blur);
+  backdrop-filter: var(--g-dark-blur);
+  background-image: var(--g-sheen);
+  box-shadow: var(--smooth-shadow-lg);
+  z-index: 2;
+  /* En reposo cada link es su propia pill de vidrio: la cápsula que las envuelve
+     aparece solo al buscar, cuando el campo ocupa todo el ancho */
+  opacity: 0;
+  transition:
+    inset var(--bnav-morph-t) var(--bnav-morph),
+    border-radius var(--bnav-morph-t) var(--bnav-morph),
+    background-color 0.5s ease,
+    opacity 0.18s ease 0.42s;
+}
+.bnav.--search .bnav__container::before,
+.bnav.--search .bnav__shine {
+  inset: 0;
+  border-radius: var(--bnav-radius);
+  opacity: 1;
+  transition:
+    inset var(--bnav-morph-t) var(--bnav-morph),
+    border-radius var(--bnav-morph-t) var(--bnav-morph),
+    background-color 0.5s ease,
+    opacity 0.1s ease;
+}
+.bnav.--search .bnav__container::before { background-color: var(--g-dark-bg); }
+
+/* La luz cruzada: un filo de 1px que brilla arriba a la izquierda y abajo a la
+   derecha. La máscara deja solo el borde (el centro queda transparente). */
+.bnav__shine {
+  /* sin filo de luz: la luz va difusa en --g-sheen */
+  display: none;
+  position: absolute;
+  z-index: 3;
+  inset: var(--gt, 6px) var(--gr, 6px) var(--gb, 6px) var(--gl, 6px);
+  padding: 1px;
+  border-radius: 24px;
+  background: var(--g-shine);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    inset var(--bnav-morph-t) var(--bnav-morph),
+    border-radius var(--bnav-morph-t) var(--bnav-morph),
+    opacity 0.18s ease 0.42s;
+}
+
+/* Halo exterior del modo búsqueda (el :after de i-d.co) */
+.bnav__container::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  /* tags + su margen arriba (10) + el mismo aire abajo que a los costados (14) */
+  bottom: calc(-4px - var(--bnav-tags-h, 0px) - 24px);
+  border-radius: calc(var(--bnav-radius) + 4px);
+  background: rgba(145, 145, 145, 0.5);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  opacity: 0;
+  transition: opacity 0.14s ease-out;
+  z-index: 1;
+}
+.bnav.--search .bnav__container::after { opacity: 1; transition: opacity 0.25s ease 0.12s; }
+
+.bnav__home {
+  position: relative;
+  z-index: 4;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  height: 48px;
+  width: 48px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 6px 18px -8px rgba(0, 0, 0, 0.28);
+  transition: transform 0.3s var(--bnav-ease);
+  overflow: hidden;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bnav__home:active { transform: scale(0.96); }
+.bnav__home img {
+  width: 32px; /* LOGO_WEB2 es cuadrado: la "e" queda ~22px, como el logo de i-d */
+  max-width: none;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.bnav__links {
+  position: relative;
+  z-index: 4;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+  /* vuelven cuando el vidrio ya se encogió casi sobre Search: relevo sin salto */
+  transition: opacity 0.24s ease 0.38s;
+}
+.bnav__links.--hidden { opacity: 0; pointer-events: none; transition: opacity 0.12s ease; }
+
+.bnav__link { font-family: var(--bnav-font); }
+
+.bnav__arrow {
+  flex-shrink: 0;
+  width: 9px;
+  height: 10px;
+  margin-left: -2px;
+  opacity: 0.45;
+}
+
+/* Search */
+.bnav__search {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.14s ease-out, visibility 0s linear 0.14s;
+}
+.bnav.--search .bnav__search {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s ease-in-out 0.1s, visibility 0s;
+}
+.bnav__search-inner {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: 100%;
+  padding-right: 18px;
+}
+.bnav__input {
+  all: unset;
+  box-sizing: border-box;
+  flex-grow: 1;
+  width: 100%;
+  height: 100%;
+  padding-left: 22px;
+  color: #fff;
+  caret-color: #fff;
+  font-family: var(--bnav-font);
+  font-size: 16px;
+  line-height: 1;
+}
+.bnav__input::placeholder { color: #fff; opacity: 0.6; }
+.bnav__close {
+  all: unset;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-right: -5px;
+  border-radius: 50%;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+.bnav__close svg { width: 12px; height: 12px; transition: transform 0.5s var(--bnav-ease); }
+.bnav__close:hover { background: rgba(255, 255, 255, 0.18); }
+.bnav__close:hover svg { transform: rotate(90deg); }
+
+/* Resultados: tags mono como los de i-d.co, entran en cascada hacia arriba */
+.bnav__tags {
+  position: absolute;
+  top: calc(100% + 10px);
+  /* 14px adentro: el radio grande del halo ya no corta las esquinas de abajo */
+  left: 10px;
+  right: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 4px;
+}
+.bnav__tags li {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.12s ease-out;
+}
+.bnav.--search .bnav__tags li {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.3s ease, transform 0.5s var(--bnav-ease);
+  transition-delay: calc(0.12s + var(--i, 0) * 0.02s);
+}
+.bnav__tag,
+.bnav__empty {
+  all: unset;
+  box-sizing: border-box;
+  display: block;
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  /* misma voz que las pills: sin mono ni mayúsculas */
+  font-family: var(--bnav-font);
+  font-size: 14px;
+  font-weight: 450;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.bnav__tag {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.bnav__tag.--active { background: rgba(236, 236, 236, 0.94); color: #111; }
+
+@media (max-width: 699px) {
+  /* Pills para el pulgar: 56px de alto (68 con el aire del buscador) */
+  .bnav { --bnav-radius: 34px; bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+  .bnav__container { height: 68px; gap: 8px; }
+  .bnav__links { gap: 8px; }
+  .bnav__link.pill--lg { --pill-h: 56px; --pill-px: 24px; font-size: 17px; }
+  .bnav__container::before, .bnav__shine { border-radius: 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bnav__container,
+  .bnav__tags li { transition: none !important; }
+}
+
+/* Pills de la nav con el mismo vidrio oscuro que el cursor "enter portfolio"
+   (.g-dark + .g-light): gris humo, texto blanco y la luz cruzada en el borde.
+   Fijo para cualquier fondo, por eso pisa los tonos de navTone */
+.bnav .bnav__link.pill--glass,
+.bnav .bnav__link.pill--glass[data-tone],
+.bnav .bnav__link.pill--glass[data-tint] {
+  --pill-bg: var(--g-dark-bg);
+  --pill-fg: #fff;
+  -webkit-backdrop-filter: var(--g-dark-blur);
+  backdrop-filter: var(--g-dark-blur);
+  /* sin aro ni glow interno: el borde es solo la luz de .g-light::before */
+  box-shadow: var(--g-shadow-soft);
+}
+@media (hover: hover) {
+  .bnav .bnav__link.pill--glass.pill--glass:hover { --pill-bg: rgba(0, 0, 0, 0.42); }
+}
+.bnav .bnav__link.pill--glass.pill--glass:active { --pill-bg: rgba(244, 244, 244, 0.96); --pill-fg: #111; }
+.bnav .bnav__link .bnav__arrow { opacity: 0.7; }
+
+/* Matte frosted (referencia One UI "Blur"): velo neutro fino + blur muy fuerte
+   que funde la foto en manchas de color; la textura viene del fondo, no del tinte */
+.bnav .bnav__link.pill--glass,
+.bnav .bnav__link.pill--glass[data-tone],
+.bnav .bnav__link.pill--glass[data-tint] {
+  --pill-bg: rgba(110, 110, 110, 0.3);
+  -webkit-backdrop-filter: blur(44px) saturate(160%);
+  backdrop-filter: blur(44px) saturate(160%);
+}
+@media (hover: hover) {
+  .bnav .bnav__link.pill--glass.pill--glass:hover { --pill-bg: rgba(80, 80, 80, 0.42); }
+}
+/* Luz del borde más fina: solo un hilo tenue en dos esquinas, sin aro */
+.bnav .bnav__link.g-light::before {
+  background:
+    radial-gradient(40% 100% at 0% 0%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.12) 35%, rgba(255,255,255,0) 60%),
+    radial-gradient(40% 100% at 100% 100%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 35%, rgba(255,255,255,0) 60%);
+}

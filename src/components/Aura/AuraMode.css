@@ -1,0 +1,90 @@
+/* Modo aura: capa a pantalla completa por encima de todo (nav incluida) */
+.aura {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  background: #0a0a0b;
+  color: #f4f4f4;
+  font-family: 'Inter Tight Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  overscroll-behavior: none;
+  touch-action: none;
+  opacity: 0;
+}
+.aura__stage,
+.aura__stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.aura__top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(20px, env(safe-area-inset-top)) 20px 0;
+  pointer-events: none;
+}
+.aura__top > * { pointer-events: auto; }
+
+.aura__brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.aura__brand small {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.aura__close { color: #fff; }
+
+.aura__label {
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 6px 12px;
+  border-radius: var(--g-radius);
+  background: rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  will-change: translate;
+}
+.aura__label.--on { opacity: 1; }
+@media (pointer: coarse) { .aura__label { display: none; } }
+
+.aura__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.aura__hint .--touch { display: none; }
+@media (pointer: coarse) {
+  .aura__hint .--fine { display: none; }
+  .aura__hint .--touch { display: inline; }
+}

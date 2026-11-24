@@ -111,7 +111,7 @@ const GalleryContainer = styled(Box, {
   return {
     backgroundColor: bgColor,
     width: '100vw',
-    height: '100vh',
+    height: '100dvh',
     position: 'relative',
     overflowX: 'auto',
     overflowY: 'hidden',
@@ -129,8 +129,8 @@ const GalleryContainer = styled(Box, {
     [theme.breakpoints.down('sm')]: {
       overflowX: 'auto',
       overflowY: 'hidden',
-      height: '100vh',
-      minHeight: '100vh',
+      height: '100dvh',
+      minHeight: '100dvh',
     },
   };
 });
@@ -171,7 +171,8 @@ const ImageItem = styled(Box, {
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
@@ -388,7 +389,7 @@ const LenoirGallery = ({ onBack }) => {
             ref={el => imageRefs.current[0] = { current: el }}
             top="50%"
             left="450px"
-            height="80vh"
+            height="80dvh"
             width="auto"
             zIndex={2}
             isVisible={visibleImages[0] !== false}
@@ -402,7 +403,7 @@ const LenoirGallery = ({ onBack }) => {
             ref={el => imageRefs.current[1] = { current: el }}
             top="50%"
             left="1200px"
-            height="80vh"
+            height="80dvh"
             width="auto"
             zIndex={2}
             isVisible={visibleImages[1] !== false}
@@ -416,7 +417,7 @@ const LenoirGallery = ({ onBack }) => {
             ref={el => imageRefs.current[2] = { current: el }}
             top="50%"
             left="1950px"
-            height="80vh"
+            height="80dvh"
             width="auto"
             zIndex={2}
             isVisible={visibleImages[2] !== false}
@@ -430,7 +431,7 @@ const LenoirGallery = ({ onBack }) => {
             ref={el => imageRefs.current[3] = { current: el }}
             top="50%"
             left="2700px"
-            height="80vh"
+            height="80dvh"
             width="auto"
             zIndex={2}
             isVisible={visibleImages[3] !== false}
@@ -444,7 +445,7 @@ const LenoirGallery = ({ onBack }) => {
             ref={el => imageRefs.current[4] = { current: el }}
             top="50%"
             left="3900px"
-            height="80vh"
+            height="80dvh"
             width="auto"
             zIndex={2}
             isVisible={visibleImages[4] !== false}
@@ -458,7 +459,7 @@ const LenoirGallery = ({ onBack }) => {
             ref={el => imageRefs.current[5] = { current: el }}
             top="50%"
             left="5000px"
-            height="80vh"
+            height="80dvh"
             width="auto"
             zIndex={2}
             isVisible={visibleImages[5] !== false}
@@ -472,7 +473,7 @@ const LenoirGallery = ({ onBack }) => {
             ref={el => imageRefs.current[6] = { current: el }}
             top="50%"
             left="5700px"
-            height="80vh"
+            height="80dvh"
             width="auto"
             zIndex={2}
             isVisible={visibleImages[6] !== false}
@@ -486,7 +487,7 @@ const LenoirGallery = ({ onBack }) => {
             ref={el => imageRefs.current[7] = { current: el }}
             top="50%"
             left="6900px"
-            height="100vh"
+            height="100dvh"
             width="auto"
             zIndex={2}
             isVisible={visibleImages[7] !== false}

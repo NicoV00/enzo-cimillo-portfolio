@@ -70,7 +70,7 @@ const GalleryContainer = styled(Box, {
   return {
     backgroundColor: bgColor,
     width: '100vw',
-    height: '100vh',
+    height: '100dvh',
     position: 'relative',
     overflowX: 'auto',
     overflowY: 'hidden',
@@ -130,7 +130,8 @@ const ImageItem = styled(Box, {
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden',
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'contain',
     borderRadius: isPhoto ? '2px' : '0',
@@ -193,8 +194,8 @@ const VestimeTeoGallery = ({ onBack }) => {
       xl: { top: "50%", left: "1900px", height: "100%", innerMaxWidth: "none", zIndex: 2 }, // Desktop: 100% height, sin restricción explícita de maxWidth interno
       lg: { top: "50%", left: "1700px", height: "100%", innerMaxWidth: "none", zIndex: 2 }, // Desktop: 100% height
       md: { top: "50%", left: "1400px", height: "100%", innerMaxWidth: "none", zIndex: 2 },  // Tablet: 100% height
-      sm: { top: "45%", left: "1300px", height: "100%", innerMaxWidth: "1100px", zIndex: 2 },// Mobile: 100% height como solicitado
-      xs: { top: "45%", left: "1100px", height: "100%", innerMaxWidth: "90vw", zIndex: 2 }, // Mobile: 100% height
+      sm: { top: "50%", left: "1300px", height: "100%", innerMaxWidth: "1100px", zIndex: 2 },// Mobile: 100% height como solicitado
+      xs: { top: "50%", left: "1100px", height: "100%", innerMaxWidth: "90vw", zIndex: 2 }, // Mobile: 100% height
     },
     V6: { // img index 3
       xl: { top: "50%", left: "3950px", height: "70%", innerMaxWidth: "550px", zIndex: 2 },
@@ -228,8 +229,8 @@ const VestimeTeoGallery = ({ onBack }) => {
       xl: { top: "50%", left: "6800px", height: "100%", innerMaxWidth: "700px", zIndex: 2 },
       lg: { top: "50%", left: "6100px", height: "100%", innerMaxWidth: "650px", zIndex: 2 },
       md: { top: "48%", left: "5200px", height: "100%", innerMaxWidth: "600px", zIndex: 2 },
-      sm: { top: "45%", left: "4700px", height: "100%", innerMaxWidth: "600px", zIndex: 2 },
-      xs: { top: "45%", left: "4200px", height: "95%", innerMaxWidth: "90vw", zIndex: 2 },
+      sm: { top: "50%", left: "4700px", height: "100%", innerMaxWidth: "600px", zIndex: 2 },
+      xs: { top: "50%", left: "4200px", height: "95%", innerMaxWidth: "90vw", zIndex: 2 },
     },
   };
 

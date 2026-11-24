@@ -46,7 +46,7 @@ const ScrollProgressBar = styled(Box)({
 const GalleryContainer = styled(Box)(({ theme }) => ({
   backgroundColor: galleryTheme.main,
   width: '100vw',
-  height: '100vh',
+  height: '100dvh',
   position: 'relative',
   overflowX: 'auto',
   overflowY: 'hidden',
@@ -63,8 +63,8 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     overflowX: 'auto',
     overflowY: 'hidden',
-    height: '100vh',
-    minHeight: '100vh',
+    height: '100dvh',
+    minHeight: '100dvh',
   },
 }));
 
@@ -117,7 +117,8 @@ const ImageItem = styled(Box, {
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden',
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
@@ -356,12 +357,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[0] = el}
         left="0px"
-        height="100vh"
+        height="100dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         mobileLeft="0px"
-        mobileHeight="100vh"
+        mobileHeight="100dvh"
         mobileWidth="150vw"
         onClick={() => handleImageClick(0)}
         sx={{ cursor: 'pointer' }}
@@ -373,12 +374,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[1] = el}
         left="800px"
-        height="85vh"
+        height="85dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[1] !== false}
         mobileLeft="850px"
-        mobileHeight="80vh"
+        mobileHeight="80dvh"
         mobileWidth="200vw"
         onClick={() => handleImageClick(1)}
         sx={{ cursor: 'pointer' }}
@@ -390,12 +391,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[2] = el}
         left="1940px"
-        height="85vh"
+        height="85dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         mobileLeft="1800px"
-        mobileHeight="80vh"
+        mobileHeight="80dvh"
         mobileWidth="130vw"
         onClick={() => handleImageClick(2)}
         sx={{ cursor: 'pointer' }}
@@ -407,12 +408,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[3] = el}
         left="2800px"
-        height="70vh"
+        height="70dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[3] !== false}
         mobileLeft="2800px"
-        mobileHeight="60vh"
+        mobileHeight="60dvh"
         mobileWidth="100vw"
         onClick={() => handleImageClick(3)}
         sx={{ cursor: 'pointer' }}
@@ -424,12 +425,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[4] = el}
         left="3340px"
-        height="70vh"
+        height="70dvh"
         width="auto"
         zIndex={3}
         isVisible={visibleImages[4] !== false}
         mobileLeft="3300px"
-        mobileHeight="60vh"
+        mobileHeight="60dvh"
         mobileWidth="100vw"
         onClick={() => handleImageClick(4)}
         sx={{ cursor: 'pointer' }}
@@ -441,12 +442,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[5] = el}
         left="4000px"
-        height="100vh"
+        height="100dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         mobileLeft="4100px"
-        mobileHeight="100vh"
+        mobileHeight="100dvh"
         mobileWidth="305vw"
         onClick={() => handleImageClick(5)}
         sx={{ cursor: 'pointer' }}
@@ -458,12 +459,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[6] = el}
         left="5300px"
-        height="100vh"
+        height="100dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[6] !== false}
         mobileLeft="5420px"
-        mobileHeight="100vh"
+        mobileHeight="100dvh"
         onClick={() => handleImageClick(6)}
         sx={{ cursor: 'pointer' }}
       >
@@ -474,12 +475,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[7] = el}
         left="5990px"
-        height="100vh"
+        height="100dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[7] !== false}
         mobileLeft="6130px"
-        mobileHeight="100vh"
+        mobileHeight="100dvh"
         onClick={() => handleImageClick(7)}
         sx={{ cursor: 'pointer' }}
       >
@@ -490,12 +491,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[8] = el}
         left="7200px"
-        height="85vh"
+        height="85dvh"
         width="auto"
         zIndex={3}
         isVisible={visibleImages[8] !== false}
         mobileLeft="7400px"
-        mobileHeight="80vh"
+        mobileHeight="80dvh"
         mobileWidth="140vw"
         onClick={() => handleImageClick(8)}
         sx={{ cursor: 'pointer' }}
@@ -507,12 +508,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[9] = el}
         left="7900px"
-        height="85vh"
+        height="85dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[9] !== false}
         mobileLeft="8120px"
-        mobileHeight="80vh"
+        mobileHeight="80dvh"
         mobileWidth="140vw"
         onClick={() => handleImageClick(9)}
         sx={{ cursor: 'pointer' }}
@@ -524,12 +525,12 @@ const EnzoGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[10] = el}
         left="8600px"
-        height="100vh"
+        height="100dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[10] !== false}
         mobileLeft="8850px"
-        mobileHeight="100vh"
+        mobileHeight="100dvh"
         mobileWidth="160vw"
         onClick={() => handleImageClick(10)}
         sx={{ cursor: 'pointer' }}

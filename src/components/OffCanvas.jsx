@@ -1,744 +1,500 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
-// OPTIMIZACIÓN 1: Lazy load de GSAP
-let gsap = null;
-const loadGSAP = async () => {
-  if (!gsap) {
-    const module = await import('gsap');
-    gsap = module.gsap;
-  }
-  return gsap;
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, memo } from 'react';
+import { gsap } from 'gsap';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import SequentialGlitchText from './SequentialGlitchText';
+import { supportsLiquidGlass } from './utils/liquidGlass';
+import { buildLensMaps, prewarmLensMaps } from './utils/lensMap';
+import { setPageOverlay } from './utils/pageTint';
+import './pill.css';
+import './MenuModal.css';
+
+// El primer Intl.DateTimeFormat con zona horaria carga los datos de zonas (~30ms):
+// se crea una vez y se adelanta junto con la lupa (ver prewarmMenu)
+let madridFormat = null;
+const getMadridFormat = () => {
+  madridFormat ??= new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Madrid',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  return madridFormat;
 };
 
-import { 
-  Box, 
-  Link,
-  Typography,
-  useMediaQuery,
-  useTheme
-} from '@mui/material';
-
-// Import components
-import SequentialGlitchText from './SequentialGlitchText';
-import { 
-  InfoButton, 
-  OverlayBackdrop, 
-  CloseButton 
-} from './StyledComponents';
-
-// Declaración de la fuente Suisse Intl Mono
-const fontFaceStyle = `
-  @font-face {
-    font-family: 'Suisse Intl Mono';
-    src: url('/fonts.com-Suisse_Intl_Mono.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-  }
-`;
-
-// OPTIMIZACIÓN 2: Memoizar el componente de tiempo para evitar re-renders del padre
-const UruguayTime = memo(({ fontSize }) => {
+const LocalTime = memo(() => {
   const [time, setTime] = useState('');
-  const [showColon, setShowColon] = useState(true);
-  
+
   useEffect(() => {
-    // Inyectar los estilos de fuente si no están ya presentes
-    if (!document.getElementById('suisse-intl-mono-font')) {
-      const style = document.createElement('style');
-      style.id = 'suisse-intl-mono-font';
-      style.innerHTML = fontFaceStyle;
-      document.head.appendChild(style);
-    }
-
-    const updateTime = () => {
-      const now = new Date();
-      const barcelonaTime = now.toLocaleTimeString('en-US', {
-        timeZone: 'Europe/Madrid',
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
-      setTime(barcelonaTime);
-    };
-
-    updateTime();
-    const timeInterval = setInterval(updateTime, 1000);
-
-    const blinkInterval = setInterval(() => {
-      setShowColon(prev => !prev);
-    }, 500);
-
-    return () => {
-      clearInterval(timeInterval);
-      clearInterval(blinkInterval);
-    };
+    const fmt = getMadridFormat();
+    const tick = () => setTime(fmt.format(new Date()));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
   }, []);
 
-  const formatTimeWithBlinkingColons = (timeString) => {
-    const parts = timeString.split(':');
-    return (
-      <Box component="span" sx={{
-        fontFamily: "'Suisse Intl Mono', monospace",
-        fontSize,
-        fontWeight: '400',
-        letterSpacing: '0.02em'
-      }}>
-        {parts[0]}
-        <Box component="span" sx={{ opacity: showColon ? 1 : 0.3, transition: 'opacity 0.1s ease' }}>
-          :
-        </Box>
-        {parts[1]}
-        <Box component="span" sx={{ opacity: showColon ? 1 : 0.3, transition: 'opacity 0.1s ease' }}>
-          :
-        </Box>
-        {parts[2]} CEST
-      </Box>
-    );
-  };
-
-  return formatTimeWithBlinkingColons(time);
+  const [h = '--', m = '--', s = '--'] = time.split(':');
+  return (
+    <span className="mmodal__time">
+      {h}<span className="mmodal__colon">:</span>{m}<span className="mmodal__colon">:</span>{s}
+      <span className="mmodal__tz">CEST</span>
+    </span>
+  );
 });
 
-const OffCanvas = ({ name, onShowChange, ...props }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  
-  const [open, setOpen] = useState(false);
-  const [mouseInsideCanvas, setMouseInsideCanvas] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [canvasReady, setCanvasReady] = useState(false);
-  
-  const drawerRef = useRef(null);
-  const overlayRef = useRef(null);
-  const cursorRef = useRef(null);
-  const cursorCloseRef = useRef(null);
-  
-  // Estados para el cursor personalizado
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isClicking, setIsClicking] = useState(false);
-  const [cursorText, setCursorText] = useState('');
-  
-  const handleOpen = useCallback(() => {
-    setOpen(true);
-    if (onShowChange) onShowChange(true);
-  }, [onShowChange]);
+// Flecha tech: palito y punta casi del mismo largo, apuntando a la esquina
+export const ArrowIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square">
+    <path d="M3 7L8 2M3.6 2H8V6.4" />
+  </svg>
+);
 
-  const handleClose = useCallback(() => {
-    setOpen(false);
-    if (onShowChange) onShowChange(false);
-    setTimeout(() => setCanvasReady(false), 500);
-  }, [onShowChange]);
+const LENS_SIZE = 120;
 
-  const handleOverlayClick = useCallback((e) => {
-    if (drawerRef.current && !drawerRef.current.contains(e.target)) {
-      handleClose();
-    }
-  }, [handleClose]);
+const CloseIcon = () => (
+  <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+    <path d="M2.5 2.5l9 9M11.5 2.5l-9 9" />
+  </svg>
+);
 
-  // OPTIMIZACIÓN 4: GSAP effect con lazy loading
-  useEffect(() => {
-    if (!drawerRef.current) return;
-
-    const animateDrawer = async () => {
-      const gsapLib = await loadGSAP();
-      
-      if (open) {
-        if (!isMobile) {
-          setCanvasReady(true);
-        }
-        
-        gsapLib.to(drawerRef.current, { 
-          x: 0, 
-          duration: 0.5, 
-          ease: 'power2.out',
-          onComplete: () => {
-            if (isMobile) {
-              setCanvasReady(true);
-            }
-          }
-        });
-        if (overlayRef.current) {
-          gsapLib.to(overlayRef.current, { opacity: 1, visibility: 'visible', duration: 0.5 });
-        }
-      } else {
-        gsapLib.to(drawerRef.current, { 
-          x: '100%', 
-          duration: 0.5, 
-          ease: 'power2.in', 
-          onComplete: () => {
-            if (overlayRef.current) {
-              gsapLib.set(overlayRef.current, { visibility: 'hidden' });
-            }
-          }
-        });
-        if (overlayRef.current) {
-          gsapLib.to(overlayRef.current, { opacity: 0, duration: 0.5 });
-        }
-      }
-    };
-
-    animateDrawer();
-  }, [open, isMobile]);
-
-  // OPTIMIZACIÓN 5: Throttle del cursor movement
-  const throttledUpdatePosition = useCallback(() => {
-    let rafId = null;
-    let lastX = 0;
-    let lastY = 0;
-
-    return (e) => {
-      lastX = e.clientX;
-      lastY = e.clientY;
-
-      if (!rafId) {
-        rafId = requestAnimationFrame(() => {
-          setPosition({ x: lastX, y: lastY });
-          rafId = null;
-        });
-      }
-    };
-  }, []);
+/**
+ * Lente de vidrio que sigue al mouse (solo punteros finos).
+ * Dentro del panel es una lupa glass; sobre el fondo se transforma en el botón de cerrar.
+ */
+const GlassCursor = ({ panelRef }) => {
+  const ref = useRef(null);
+  const mapZRef = useRef(null);
+  const [scales, setScales] = useState(null);
+  const mapRRef = useRef(null);
+  const mapGRef = useRef(null);
+  const mapBRef = useRef(null);
+  const maskRef = useRef(null);
+  const [refract] = useState(supportsLiquidGlass);
 
   useEffect(() => {
-    if (isMobile || isTablet || !open) return;
+    if (!refract || !mapGRef.current || !maskRef.current) return;
+    const { maps, scales: sc, mask } = buildLensMaps(LENS_SIZE);
+    setScales(sc);
+    mapZRef.current.setAttribute('href', maps.zoom);
+    mapRRef.current.setAttribute('href', maps.r);
+    mapGRef.current.setAttribute('href', maps.g);
+    mapBRef.current.setAttribute('href', maps.b);
+    maskRef.current.setAttribute('href', mask);
+  }, [refract]);
 
-    const updatePositionThrottled = throttledUpdatePosition();
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let x = window.innerWidth / 2;
+    let y = window.innerHeight / 2;
+    let cx = x;
+    let cy = y;
+    let raf = 0;
+    let shown = false;
+    let s = 1;
 
-    const handleMouseDown = () => setIsClicking(true);
-    const handleMouseUp = () => setIsClicking(false);
+    const loop = () => {
+      // Seguimiento con inercia: se siente físico sin quedarse atrás.
+      // El tamaño va por scale (el mapa de la lupa es de tamaño fijo)
+      cx += (x - cx) * 0.22;
+      cy += (y - cy) * 0.22;
+      const c = el.classList;
+      // afuera queda en ~53px (el tamaño de la X cuadrada)
+      const target = c.contains('--press') ? 0.86 : c.contains('--outside') ? 1 / 3 : c.contains('--hover') ? 1.15 : 1;
+      s += (target - s) * 0.16;
+      el.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%) scale(${s})`;
+      raf = requestAnimationFrame(loop);
+    };
 
-    const handleMouseEnter = (e) => {
-      const target = e.target;
-      if (target.dataset.cursorText) {
-        setCursorText(target.dataset.cursorText);
-      } else if (target.closest('[data-cursor-hover]')) {
-        const hoverElement = target.closest('[data-cursor-hover]');
-        setCursorText(hoverElement.dataset.cursorHover || '');
+    const onMove = (e) => {
+      x = e.clientX;
+      y = e.clientY;
+      if (!shown) {
+        cx = x;
+        cy = y;
+        shown = true;
+        el.classList.add('--visible');
       }
+      const inside = panelRef.current?.contains(e.target);
+      el.classList.toggle('--outside', !inside);
+      el.classList.toggle('--hover', !!(inside && e.target.closest('a, button')));
     };
-
-    const handleMouseLeave = () => {
-      setCursorText('');
+    const onDown = () => {
+      el.classList.add('--press');
+      // destello: reinicia la animación del flash en cada click
+      el.classList.remove('--flash');
+      void el.offsetWidth;
+      el.classList.add('--flash');
     };
+    const onUp = () => el.classList.remove('--press');
+    const onLeave = () => el.classList.remove('--visible');
+    const onEnter = () => shown && el.classList.add('--visible');
 
-    // Usar event delegation en lugar de agregar listeners a cada elemento
-    const container = drawerRef.current;
-    if (container) {
-      container.addEventListener('mouseenter', handleMouseEnter, true);
-      container.addEventListener('mouseleave', handleMouseLeave, true);
-    }
+    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointerup', onUp);
+    document.documentElement.addEventListener('pointerleave', onLeave);
+    document.documentElement.addEventListener('pointerenter', onEnter);
+    raf = requestAnimationFrame(loop);
 
-    document.addEventListener('mousemove', updatePositionThrottled);
-    document.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mouseup', handleMouseUp);
-    
-    // Esconder el cursor nativo
-    if (drawerRef.current) {
-      drawerRef.current.style.cursor = 'none';
-      const elements = drawerRef.current.querySelectorAll('*');
-      elements.forEach(element => {
-        element.style.cursor = 'none';
-      });
-    }
-    document.body.style.cursor = 'none';
-    
     return () => {
-      if (container) {
-        container.removeEventListener('mouseenter', handleMouseEnter, true);
-        container.removeEventListener('mouseleave', handleMouseLeave, true);
-      }
-      
-      document.removeEventListener('mousemove', updatePositionThrottled);
-      document.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'auto';
+      cancelAnimationFrame(raf);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+      document.documentElement.removeEventListener('pointerleave', onLeave);
+      document.documentElement.removeEventListener('pointerenter', onEnter);
     };
-  }, [isMobile, isTablet, open, throttledUpdatePosition]);
+  }, [panelRef]);
 
-  const handleMouseEnterCanvas = useCallback(() => {
-    setMouseInsideCanvas(true);
-  }, []);
-  
-  const handleMouseLeaveCanvas = useCallback(() => {
-    setMouseInsideCanvas(false);
-  }, []);
-  
-  const handleCursorClick = useCallback(() => {
-    if (!mouseInsideCanvas) handleClose();
-  }, [mouseInsideCanvas, handleClose]);
-  
-  const drawerWidth = isMobile ? '100%' : isTablet ? '90%' : '800px';
-  
-  const helveticaTextStyle = {
-    fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif'
-  };
-  
-  // OPTIMIZACIÓN 6: Lazy load de links con GSAP
-  const handleLinkHover = useCallback(async (underlineId) => {
-    const el = document.getElementById(underlineId);
-    if (el) {
-      const gsapLib = await loadGSAP();
-      gsapLib.killTweensOf(el);
-      gsapLib.fromTo(el, 
-        { width: "0%", left: "0%", right: "auto" }, 
-        { width: "100%", duration: 0.35, ease: "power2.inOut" }
-      ).then(() => {
-        gsapLib.to(el, 
-          { left: "auto", right: "0%", width: "0%", duration: 0.35, delay: 0.1, ease: "power2.inOut" }
-        );
-      });
+  return (
+    <div ref={ref} className={`mcursor${refract ? ' --refract' : ''}`} aria-hidden="true">
+      {refract && (
+        <svg className="mcursor__defs" focusable="false">
+          <filter
+            id="mlens"
+            x="0"
+            y="0"
+            width={LENS_SIZE}
+            height={LENS_SIZE}
+            filterUnits="userSpaceOnUse"
+            primitiveUnits="userSpaceOnUse"
+            colorInterpolationFilters="sRGB"
+          >
+            <feOffset in="SourceGraphic" dx="0" dy="0" result="src" />
+            {/* 1) zoom: un solo mapa fino para los tres canales -> centro limpio */}
+            <feImage ref={mapZRef} x="0" y="0" width={LENS_SIZE} height={LENS_SIZE} preserveAspectRatio="none" result="mapZ" />
+            <feDisplacementMap in="src" in2="mapZ" scale={scales?.zoom ?? 0} xChannelSelector="R" yChannelSelector="G" result="zoomed" />
+            {/* 2) bisel: refracción y prisma solo en el borde, un mapa por canal */}
+            <feImage ref={mapRRef} x="0" y="0" width={LENS_SIZE} height={LENS_SIZE} preserveAspectRatio="none" result="mapR" />
+            <feImage ref={mapGRef} x="0" y="0" width={LENS_SIZE} height={LENS_SIZE} preserveAspectRatio="none" result="mapG" />
+            <feImage ref={mapBRef} x="0" y="0" width={LENS_SIZE} height={LENS_SIZE} preserveAspectRatio="none" result="mapB" />
+            <feDisplacementMap in="zoomed" in2="mapR" scale={scales?.bezel ?? 0} xChannelSelector="R" yChannelSelector="G" result="dr" />
+            <feDisplacementMap in="zoomed" in2="mapG" scale={scales?.bezel ?? 0} xChannelSelector="R" yChannelSelector="G" result="dg" />
+            <feDisplacementMap in="zoomed" in2="mapB" scale={scales?.bezel ?? 0} xChannelSelector="R" yChannelSelector="G" result="db" />
+            <feColorMatrix in="dr" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r" />
+            <feColorMatrix in="dg" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g" />
+            <feColorMatrix in="db" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b" />
+            <feBlend in="r" in2="g" mode="screen" result="rg" />
+            <feBlend in="rg" in2="b" mode="screen" result="lens" />
+            {/* difusión del borde: versión desenfocada solo en el aro */}
+            <feGaussianBlur in="lens" stdDeviation="0.35" result="soft" />
+            <feImage ref={maskRef} x="0" y="0" width={LENS_SIZE} height={LENS_SIZE} preserveAspectRatio="none" result="mask" />
+            <feComposite in="soft" in2="mask" operator="in" result="rim" />
+            <feComposite in="rim" in2="lens" operator="over" />
+          </filter>
+        </svg>
+      )}
+      <span className="mcursor__glare" />
+      <span className="mcursor__x"><CloseIcon /></span>
+    </div>
+  );
+};
+
+const bodyText = {
+  fontSize: '13px',
+  lineHeight: '17px',
+  fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  letterSpacing: '-0.01em',
+  style: { wordSpacing: 'normal' },
+  stable: true,
+};
+
+// Texto principal de las filas: más grande y negro, como el bloque "What I do"
+const leadText = { ...bodyText, fontSize: '17px', lineHeight: '23px', fontFamily: "'Inter Tight Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif" };
+
+const SERVICES = ['Creative Direction', 'Photography', 'Videography', 'Editing'];
+const EMAIL = 'cimillo.enzo@gmail.com';
+
+// Rect final del modal: ocupa la vista (con tope) y el contenido se acomoda adentro
+// sin scroll: las fotos son lo único que se estira o se achica (ver .mmodal__media)
+const getPanelRect = (inner) => {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const mobile = vw < 700;
+  const side = mobile ? 20 : 24;
+  const top = mobile ? 20 : 24;
+  const bottom = mobile ? 20 : 24;
+  const width = Math.min(620, vw - side * 2);
+  const height = Math.min(vh - top - bottom, 900);
+  if (inner) {
+    inner.style.width = `${width}px`;
+    inner.style.height = `${height}px`;
+  }
+  return { left: (vw - width) / 2, top: (vh - height) / 2, width, height };
+};
+
+// Si no se puede leer la pill de origen, el morph arranca con este vidrio
+const NAV_TINT = 'rgba(205, 205, 205, 0.34)';
+const PANEL_BG = '#ffffff';
+const PANEL_RADIUS = 28;
+
+// Menú: modal que nace de la BottomNav (morph nav <-> modal)
+const OffCanvas = ({ open, onClose, originRef, onExited }) => {
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [ready, setReady] = useState(false);
+  // Lo caro de la primera apertura (lupa + reloj) se prepara con la página ociosa
+  useEffect(() => {
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1500));
+    idle(getMadridFormat, { timeout: 4000 });
+    if (supportsLiquidGlass() && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      prewarmLensMaps(LENS_SIZE);
     }
   }, []);
-  
-  return (
-    <>
-      <InfoButton
-        onClick={handleOpen}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        sx={{ 
-          backgroundColor: isHovered ? 'white' : 'black',
-          color: isHovered ? 'black' : 'white',
-          boxShadow: isHovered ? '0 0 8px rgba(255,255,255,0.8)' : 'none',
-          fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif'
-        }}
-      >
-        i
-      </InfoButton>
+  // Las barras de Safari iOS se oscurecen junto con el velo (.mmodal.--visible), sin cortes.
+  // Al frame siguiente: lee el layout de la página y no tiene que bloquear el click
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setPageOverlay('menu', visible ? 'rgba(0, 0, 0, 0.22)' : null));
+    return () => cancelAnimationFrame(raf);
+  }, [visible]);
+  useEffect(() => () => setPageOverlay('menu', null), []);
+  const [finePointer] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  );
+  const navigate = useNavigate();
+  const goTo = (path) => (e) => {
+    e.preventDefault();
+    onClose?.();
+    navigate(path);
+  };
+  const panelRef = useRef(null);
+  const innerRef = useRef(null);
+  // La palabra "Menu" viaja dentro del panel: se va al crecer y vuelve al encogerse,
+  // así se lee que es la misma pill la que se transforma
+  const ghostRef = useRef(null);
+  const lastFocus = useRef(null);
+  const tweenRef = useRef(null);
+  const closingRef = useRef(false);
 
-      {open && (
-        <OverlayBackdrop 
-          ref={overlayRef} 
-          onClick={handleOverlayClick}
-        >
-          <Box
-            ref={drawerRef}
-            onMouseEnter={handleMouseEnterCanvas}
-            onMouseLeave={handleMouseLeaveCanvas}
-            sx={{
-              width: drawerWidth,
-              height: '100%',
-              bgcolor: 'black',
-              color: 'white',
-              padding: isMobile ? '14px 12px' : isTablet ? '18px 26px 18px 18px' : '22px',
-              display: 'flex',
-              flexDirection: 'column',
-              position: 'relative',
-              transform: 'translateX(100%)',
-              overflowY: 'auto',
-              overflowX: 'hidden',
-              cursor: 'none',
-              zIndex: 10001,
-              '& *': {
-                cursor: 'none !important',
-                fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif'
-              }
-            }}
-          >
-            {/* Close button for mobile/tablet */}
-            {(isMobile || isTablet) && (
-              <CloseButton isMobile={isMobile} onClick={handleClose}>
-                ✖
-              </CloseButton>
-            )}
-            
-            {/* TÍTULO ENZO CIMILLO - Alineado con el resto del contenido */}
-            <Box sx={{ 
-              position: 'relative',
-              width: '100%', 
-              display: 'flex', 
-              flexDirection: 'column',
-              alignItems: isMobile ? 'center' : 'flex-start',
-              pt: { xs: '20px', sm: '24px', md: '10px' },
-              pb: { xs: '20px', sm: '24px', md: '28px' },
-              px: isMobile ? '8px' : '20px', // MISMO MARGEN QUE EL RESTO: 20px
-              marginBottom: isMobile ? '2.5rem' : '1.5rem'
-            }}>
-              <Typography
-                sx={{
-                  fontFamily: 'Helvetica-Bold, "Helvetica Neue", Helvetica, Arial, sans-serif',
-                  fontSize: { 
-                    xs: '3.5rem',
-                    sm: '5rem',
-                    md: '8.1rem'
-                  },
-                  fontWeight: 'bold',
-                  color: 'white',
-                  lineHeight: '0.9',
-                  letterSpacing: '-0.02em',
-                  margin: 0,
-                  opacity: canvasReady ? 1 : 0,
-                  transition: 'opacity 0.5s ease',
-                }}
-              >
-                enzo cimillo
-              </Typography>
-            </Box>
-            
-            {/* Content sections - TODOS CON MARGEN 20px */}
-            <Box sx={{ 
-              position: { xs: 'relative', md: 'absolute' },
-              top: { md: '25rem' },
-              left: { md: '20px' },
-              right: { md: '20px' },
-              px: { xs: '8px', md: 0 },
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' }, 
-              alignItems: 'flex-start',
-              flexWrap: 'wrap',
-              marginBottom: { xs: '2rem', md: 0 }
-            }}>
-              <Box sx={{
-                width: { xs: '100%', sm: '12rem' },
-                marginBottom: { xs: '1.2rem', sm: 0 },
-                marginRight: { sm: '2.5rem' },
-                paddingRight: 0,
-                whiteSpace: 'nowrap' // Forzar que no haya salto de línea
-              }}>
+  useEffect(() => {
+    if (open) {
+      lastFocus.current = document.activeElement;
+      setMounted(true);
+    }
+  }, [open]);
+
+  useLayoutEffect(() => {
+    const panel = panelRef.current;
+    if (!mounted || !panel) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Forma y color exactos de la pill de Menu (su tinte cambia con el fondo)
+    const originEl = originRef?.current;
+    const origin = originEl?.getBoundingClientRect();
+    const navShape = origin && {
+      left: origin.left,
+      top: origin.top,
+      width: origin.width,
+      height: origin.height,
+      borderRadius: origin.height / 2,
+      backgroundColor: getComputedStyle(originEl).backgroundColor || NAV_TINT,
+    };
+    const ghost = ghostRef.current;
+    if (ghost && originEl) {
+      const cs = getComputedStyle(originEl);
+      Object.assign(ghost.style, {
+        color: cs.color,
+        fontFamily: cs.fontFamily,
+        fontSize: cs.fontSize,
+        fontWeight: cs.fontWeight,
+        letterSpacing: cs.letterSpacing,
+      });
+      gsap.killTweensOf(ghost);
+    }
+
+    if (open) {
+      // El contenido ya tiene su tamaño final: el panel lo recorta mientras crece (sin reflow)
+      const to = getPanelRect(innerRef.current);
+      const final = { ...to, borderRadius: PANEL_RADIUS, backgroundColor: PANEL_BG, opacity: 1 };
+      // Si se reabre a mitad del cierre, sigue desde donde está
+      const wasClosing = closingRef.current;
+      closingRef.current = false;
+      tweenRef.current?.kill();
+      if (!wasClosing) {
+        gsap.set(panel, navShape ? { ...navShape, opacity: 1 } : { ...to, borderRadius: PANEL_RADIUS, opacity: 0 });
+        if (ghost) gsap.set(ghost, { opacity: navShape ? 1 : 0 });
+      }
+      // la palabra se apaga en cuanto la pill empieza a crecer
+      if (ghost) gsap.to(ghost, { opacity: 0, duration: reduced ? 0.01 : 0.14, ease: 'power1.out' });
+      tweenRef.current = gsap.to(panel, {
+        ...final,
+        duration: reduced ? 0.01 : 0.85,
+        ease: 'expo.out',
+        // si otro código mata el tween, el panel no queda a medio abrir
+        onInterrupt: () => { if (!closingRef.current) gsap.set(panel, final); },
+      });
+      setVisible(true);
+      const t = setTimeout(() => setReady(true), reduced ? 0 : 320);
+      return () => clearTimeout(t);
+    }
+
+    // Cerrar: primero se va el contenido, después el modal vuelve a ser la nav
+    closingRef.current = true;
+    setVisible(false);
+    tweenRef.current?.kill();
+    // Desmonta aunque otro código mate el tween: si no, el overlay invisible
+    // queda tapando la página y la forma de la nav encima de la nav real
+    const unmount = () => {
+      if (!closingRef.current) return; // se reabrió mientras cerraba
+      closingRef.current = false;
+      // el glitch se rearma al desmontar, no en el click (menos trabajo en el cierre)
+      setReady(false);
+      setMounted(false);
+    };
+    // La nav real empieza a aparecer en la cola del morph (no al final): sin pausa en el relevo
+    let handedOff = false;
+    const handOff = () => {
+      if (handedOff) return;
+      handedOff = true;
+      onExited?.();
+    };
+    const closeDur = reduced ? 0.01 : 0.58;
+    // "Menu" reaparece en el último tramo, cuando el panel ya tiene casi el tamaño
+    // de la pill: al terminar, la forma es idéntica a la pill real y el relevo no se nota
+    if (ghost && navShape) {
+      gsap.to(ghost, { opacity: 1, duration: reduced ? 0.01 : 0.2, delay: closeDur * 0.5, ease: 'power1.out' });
+    }
+    tweenRef.current = gsap.to(panel, {
+      ...(navShape || { opacity: 0 }),
+      duration: closeDur,
+      // un solo ease-out: arranca enseguida y frena suave sobre la nav (expo.inOut tironeaba)
+      ease: 'power3.out',
+      onUpdate() { if (this.progress() > 0.8) handOff(); },
+      onComplete: () => {
+        handOff();
+        // la forma se va recién cuando la nav real ya está casi entera (sin bache de opacidad)
+        tweenRef.current = gsap.to(panel, {
+          opacity: 0,
+          duration: 0.14,
+          delay: 0.12,
+          ease: 'power1.out',
+          onComplete: unmount,
+          onInterrupt: unmount,
+        });
+      },
+      onInterrupt: () => {
+        if (!closingRef.current) return;
+        handOff();
+        unmount();
+      },
+    });
+    lastFocus.current?.focus?.({ preventScroll: true });
+    return undefined;
+  }, [open, mounted, originRef, onExited]);
+
+  useEffect(() => () => tweenRef.current?.kill(), []);
+
+  // Mantener el modal centrado si cambia el viewport
+  useEffect(() => {
+    if (!open || !mounted) return;
+    const onResize = () => {
+      const to = getPanelRect(innerRef.current);
+      if (!tweenRef.current?.isActive()) gsap.set(panelRef.current, to);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [open, mounted]);
+
+  useEffect(() => {
+    // Sin botón de cerrar: se cierra tocando afuera o con Esc. El foco va al panel
+    if (ready) panelRef.current?.focus({ preventScroll: true });
+  }, [ready]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  const onBackdropDown = useCallback((e) => {
+    if (open && !panelRef.current?.contains(e.target)) onClose?.();
+  }, [open, onClose]);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      className={`mmodal${visible ? ' --visible' : ''}${finePointer && open ? ' --nocursor' : ''}`}
+      onPointerDown={onBackdropDown}
+    >
+      <div
+        ref={panelRef}
+        className="mmodal__panel"
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+      >
+        <span ref={ghostRef} className="mmodal__ghost" aria-hidden="true">Menu</span>
+        <div ref={innerRef} className="mmodal__inner">
+          <header className="mmodal__top">
+            <span className="pill pill--soft pill--static mmodal__name">enzo cimillo</span>
+            <div className="mmodal__top-end">
+              <a className="pill pill--soft pill--quiet" href="/gallery/enzo">Latest work</a>
+              <button type="button" className="pill pill--solid" onClick={onClose}>Close</button>
+            </div>
+          </header>
+
+          {/* Fila de imágenes: el último proyecto grande, otro chico apoyado abajo */}
+          <div className="mmodal__media">
+            <a className="mmodal__shot --main" href="/gallery/enzo">
+              <img src="/images/X/webp/@enzocimillo_ex-_6.webp" alt="ex-, 2026" />
+            </a>
+          </div>
+
+          <div className="mmodal__meta"><span>Latest / ex- / 2026</span></div>
+
+          <section className="mmodal__rows">
+            <div className="mmodal__row">
+              <span className="mmodal__label">About</span>
+              <div className="mmodal__value --lead">
                 <SequentialGlitchText
-                  text="(Based in Barcelona, Spain)"
-                  fontWeight="bold"
-                  fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
-                  initialGlitch={canvasReady}
-                  style={{ ...helveticaTextStyle, whiteSpace: 'nowrap' }}
+                  text="Photographer and videographer with a strong inclination towards fashion productions."
+                  {...leadText}
+                  initialGlitch={ready}
                 />
-              </Box>
-              <Box sx={{ 
-                flex: 1,
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                hyphens: 'auto',
-                wordBreak: 'keep-all'
-              }}>
-                <SequentialGlitchText 
-                  text="I'm a young photographer and videographer with a strong inclination towards fashion productions."
-                  fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
-                  lineHeight={{ xs: '1.25rem', sm: '1.35rem' }}
-                  fontWeight="500"
-                  style={{ 
-                    ...helveticaTextStyle, 
-                    marginBottom: '1.2rem',
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
-                    hyphens: 'manual',
-                    wordBreak: 'normal'
-                  }}
-                  initialGlitch={canvasReady}
-                />
-              </Box>
-            </Box>
-            
-            {/* Capabilities section - MARGEN 20px */}
-            <Box sx={{ 
-              position: { xs: 'relative', md: 'absolute' },
-              top: { md: '34rem' },
-              left: { md: '20px' },
-              right: { md: '20px' },
-              px: { xs: '8px', md: 0 },
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' }, 
-              alignItems: 'flex-start',
-              flexWrap: 'wrap',
-              marginBottom: { xs: '2rem', md: 0 }
-            }}>
-              <Box sx={{ 
-                width: { xs: '100%', sm: '12rem' },
-                marginBottom: { xs: '1.2rem', sm: 0 },
-                marginRight: { sm: '2.5rem' }
-              }}>
-                <SequentialGlitchText 
-                  text="(Capabilities)" 
-                  fontWeight="bold" 
-                  fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
-                  initialGlitch={canvasReady}
-                  style={helveticaTextStyle}
-                />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Box sx={{ marginBottom: '0.7rem' }}>
-                  <SequentialGlitchText 
-                    text="Editing"
-                    fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
-                    lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
-                    fontWeight="500"
-                    initialGlitch={canvasReady}
-                    style={helveticaTextStyle}
-                  />
-                </Box>
-                <Box sx={{ marginBottom: '0.7rem' }}>
-                  <SequentialGlitchText 
-                    text="Photography"
-                    fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
-                    lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
-                    fontWeight="500"
-                    initialGlitch={canvasReady}
-                    style={helveticaTextStyle}
-                  />
-                </Box>
-                <Box sx={{ marginBottom: '0.7rem' }}>
-                  <SequentialGlitchText 
-                    text="Videography"
-                    fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
-                    lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
-                    fontWeight="500"
-                    initialGlitch={canvasReady}
-                    style={helveticaTextStyle}
-                  />
-                </Box>
-              </Box>
-            </Box>
-            
-            {/* Contact section - MARGEN 20px */}
-            <Box sx={{ 
-              position: { xs: 'relative', md: 'absolute' },
-              bottom: { md: '8rem' },
-              left: { md: '20px' },
-              right: { md: '20px' },
-              px: { xs: '8px', md: 0 },
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' }, 
-              alignItems: 'flex-start',
-              flexWrap: 'wrap',
-              marginBottom: { xs: '2.5rem', md: 0 },
-              mt: { xs: '2rem', md: 0 }
-            }}>
-              <Box sx={{ 
-                width: { xs: '100%', sm: '12rem' },
-                marginBottom: { xs: '1.2rem', sm: 0 },
-                marginRight: { sm: '2.5rem' }
-              }}>
-                <SequentialGlitchText 
-                  text="(Contact)" 
-                  fontWeight="bold" 
-                  fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
-                  initialGlitch={canvasReady}
-                  isNeonGreen={true}
-                  style={helveticaTextStyle}
-                />
-              </Box>
-              <Box sx={{ 
-                flex: 1,
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                hyphens: 'manual',
-                wordBreak: 'normal'
-              }}>
-                <SequentialGlitchText 
-                  text="Available for commission and freelance work."
-                  fontSize={{ xs: '0.95rem', sm: '1.1rem' }}
-                  lineHeight={{ xs: '1.25rem', sm: '1.45rem' }}
-                  fontWeight="500"
-                  style={{ 
-                    ...helveticaTextStyle, 
-                    marginBottom: '1.2rem',
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
-                    hyphens: 'manual',
-                    wordBreak: 'normal'
-                  }}
-                  initialGlitch={canvasReady}
-                />
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: '1.2rem',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  alignItems: { xs: 'flex-start', sm: 'center' },
-                  flexWrap: 'wrap'
-                }}>
-                  <Box position="relative" display="inline-block">
-                    <Link 
-                      href="mailto:cimillo.enzo@gmail.com" 
-                      onMouseEnter={() => handleLinkHover('email-underline')}
-                      sx={{ 
-                        fontSize: { xs: '0.95rem', sm: '1.1rem' }, 
-                        textDecoration: 'underline', 
-                        color: '#00ff00', 
-                        fontWeight: '500',
-                        fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif',
-                        textShadow: '0 0 2px #00ff00, 0 0 4px #00ff00, 0 0 6px #00ff00',
-                        transition: 'text-shadow 0.3s ease, color 0.3s ease',
-                        '&:hover': {
-                          color: '#00ff00',
-                          textDecoration: 'none',
-                          textShadow: '0 0 4px #00ff00, 0 0 8px #00ff00, 0 0 12px #00ff00, 0 0 16px #00ff00'
-                        }
-                      }}
-                    >
-                      email
-                    </Link>
-                    <Box
-                      id="email-underline"
-                      sx={{
-                        position: 'absolute',
-                        bottom: '-2px',
-                        left: 0,
-                        height: '2px',
-                        width: '0%',
-                        backgroundColor: '#00ff00',
-                        boxShadow: '0 0 4px #00ff00, 0 0 8px #00ff00',
-                      }}
-                    />
-                  </Box>
-                  
-                  <Box position="relative" display="inline-block">
-                    <Link 
-                      href="https://www.instagram.com/enzocimillo" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      onMouseEnter={() => handleLinkHover('instagram-underline')}
-                      sx={{ 
-                        fontSize: { xs: '0.95rem', sm: '1.1rem' }, 
-                        textDecoration: 'underline', 
-                        color: '#00ff00', 
-                        fontWeight: '500',
-                        fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif',
-                        textShadow: '0 0 2px #00ff00, 0 0 4px #00ff00, 0 0 6px #00ff00',
-                        transition: 'text-shadow 0.3s ease, color 0.3s ease',
-                        '&:hover': {
-                          color: '#00ff00',
-                          textDecoration: 'none',
-                          textShadow: '0 0 4px #00ff00, 0 0 8px #00ff00, 0 0 12px #00ff00, 0 0 16px #00ff00'
-                        }
-                      }}
-                    >
-                      instagram
-                    </Link>
-                    <Box
-                      id="instagram-underline"
-                      sx={{
-                        position: 'absolute',
-                        bottom: '-2px',
-                        left: 0,
-                        height: '2px',
-                        width: '0%',
-                        backgroundColor: '#00ff00',
-                        boxShadow: '0 0 4px #00ff00, 0 0 8px #00ff00',
-                      }}
-                    />
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-            
-            {/* Local time section - MARGEN 20px */}
-            <Box sx={{ 
-              position: { xs: 'relative', md: 'absolute' },
-              bottom: { md: '3rem' },
-              left: { md: '20px' },
-              right: { md: '20px' },
-              px: { xs: '8px', md: 0 },
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' }, 
-              alignItems: 'flex-start',
-              flexWrap: 'wrap',
-              marginTop: { xs: '1.2rem', md: 0 }
-            }}>
-              <Box sx={{ 
-                width: { xs: '100%', sm: '12rem' },
-                marginBottom: { xs: '0.7rem', sm: 0 },
-                marginRight: { sm: '2.5rem' }
-              }}>
-                <SequentialGlitchText 
-                  text="(Local time)" 
-                  fontWeight="bold" 
-                  fontSize={{ xs: '0.8rem', sm: '0.95rem' }}
-                  initialGlitch={canvasReady}
-                  style={helveticaTextStyle}
-                />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                {/* Componente UruguayTime optimizado con memo y fuente Suisse Intl Mono */}
-                <UruguayTime 
-                  fontSize={{ xs: '0.95rem', sm: '1.1rem' }} 
-                />
-              </Box>
-            </Box>
-          </Box>
-        </OverlayBackdrop>
-      )}
-      
-      {/* Custom cursors - solo para desktop */}
-      {!isMobile && !isTablet && open && (
-        <>
-          {/* Cursor X - solo visible FUERA del canvas */}
-          <Box
-            ref={cursorCloseRef}
-            onClick={handleCursorClick}
-            sx={{
-              position: 'fixed',
-              width: '30px',
-              height: '30px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              fontSize: '24px',
-              fontWeight: 'bold',
-              fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif',
-              backgroundColor: 'black',
-              color: 'white',
-              border: '2px solid white',
-              borderRadius: '0',
-              transform: 'translate(-50%, -50%)',
-              pointerEvents: 'none',
-              zIndex: 10002,
-              cursor: 'none',
-              left: `${position.x}px`,
-              top: `${position.y}px`,
-              visibility: mouseInsideCanvas ? 'hidden' : 'visible',
-            }}
-          >
-            ✖
-          </Box>
-          
-          {/* Cursor circular - solo visible DENTRO del canvas */}
-          <Box
-            ref={cursorRef}
-            className="cursor-dot bg-white mix-blend-difference"
-            sx={{
-              position: 'fixed',
-              width: '30px',
-              height: '30px',
-              borderRadius: '50%',
-              backgroundColor: 'white',
-              mixBlendMode: 'difference',
-              pointerEvents: 'none',
-              zIndex: 10002,
-              transform: 'translate(-50%, -50%)',
-              left: `${position.x}px`,
-              top: `${position.y}px`,
-              scale: mouseInsideCanvas ? (isClicking ? 0.8 : 2) : 0,
-              transition: 'scale 0.3s ease',
-              visibility: mouseInsideCanvas ? 'visible' : 'hidden',
-            }}
-          />
-          
-          {/* Texto del cursor cuando corresponda */}
-          {cursorText && mouseInsideCanvas && (
-            <Box
-              sx={{
-                position: 'fixed',
-                left: `${position.x}px`,
-                top: `${position.y + 30}px`,
-                transform: 'translate(-50%, -50%)',
-                color: 'white',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                fontFamily: 'Helvetica-Regular, Helvetica, Arial, sans-serif',
-                pointerEvents: 'none',
-                zIndex: 10002,
-                padding: '2px 4px',
-                opacity: 1,
-                transition: 'opacity 0.3s ease',
-              }}
-            >
-              {cursorText}
-            </Box>
-          )}
-        </>
-      )}
-    </>
+              </div>
+            </div>
+
+            <div className="mmodal__row">
+              <span className="mmodal__label">What I do</span>
+              <div className="mmodal__value">
+                <ul className="mmodal__pills">
+                  {SERVICES.map((s) => (
+                    <li key={s}><span className="pill pill--soft pill--static">{s}</span></li>
+                  ))}
+                </ul>
+                <p className="mmodal__note">Available for commission and freelance work.</p>
+              </div>
+            </div>
+
+            <div className="mmodal__row mmodal__row--location">
+              <span className="mmodal__label">Based in Barcelona</span>
+              <div className="mmodal__value"><LocalTime /></div>
+            </div>
+          </section>
+
+          <footer className="mmodal__foot">
+            <a className="pill pill--soft pill--split mmodal__mail" href={`mailto:${EMAIL}`}>
+              <span>Contact</span>
+              <span className="pill__muted">{EMAIL}</span>
+            </a>
+            <div className="pill pill--soft pill--static pill--split mmodal__copy">
+              <span>&copy; {new Date().getFullYear()} Enzo Cimillo</span>
+              <span className="mmodal__legal"><a href="/privacy" onClick={goTo('/privacy')}>Privacy</a></span>
+            </div>
+            <a className="pill pill--soft mmodal__instagram" href="https://www.instagram.com/enzocimillo" target="_blank" rel="noopener noreferrer">
+              Instagram<ArrowIcon className="pill__arrow" />
+            </a>
+          </footer>
+        </div>
+      </div>
+
+      {finePointer && <GlassCursor panelRef={panelRef} />}
+    </div>,
+    document.body
   );
 };
 

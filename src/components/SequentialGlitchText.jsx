@@ -13,7 +13,10 @@ const SequentialGlitchText = ({
   style, 
   initialGlitch = false, 
   isNeonGreen = false,
-  lineHeight
+  lineHeight,
+  // stable: cada letra conserva su ancho y no cambia el tracking, así el párrafo
+  // no se reacomoda ni empuja lo que tiene abajo durante el glitch
+  stable = false
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isInitializing, setIsInitializing] = useState(initialGlitch);
@@ -84,6 +87,15 @@ const SequentialGlitchText = ({
     
     // Always initialize to ensure correct structure
     initializeText();
+
+    if (stable) {
+      textRef.current.querySelectorAll('span').forEach((span) => {
+        if (span.dataset.original === ' ') return;
+        span.style.width = `${span.getBoundingClientRect().width}px`;
+        span.style.textAlign = 'center';
+        span.style.transition = 'opacity 0.12s ease';
+      });
+    }
     
     // Function to get a random character for the glitch
     const getRandomChar = () => {
@@ -102,7 +114,7 @@ const SequentialGlitchText = ({
       // Adaptive glitch window (larger for longer texts)
       const baseWindowSize = 5; // Minimum 5 letters
       const adaptiveSize = Math.max(baseWindowSize, Math.floor(text.length / 15)); // Scale for long texts
-      const windowSize = Math.min(adaptiveSize, 12); // No more than 12 at once to keep the effect visible
+      const windowSize = stable ? 4 : Math.min(adaptiveSize, 12); // No more than 12 at once to keep the effect visible
       
       let currentIndex = 0;
       
@@ -116,6 +128,7 @@ const SequentialGlitchText = ({
             }
             chars[i].style.scale = '1';
             chars[i].style.transform = 'translateY(0)';
+            chars[i].style.opacity = '';
           }
         }
         
@@ -124,8 +137,12 @@ const SequentialGlitchText = ({
           if (chars[i] && chars[i].dataset.original.trim() !== '') {
             // Apply glitch only to non-space characters
             chars[i].textContent = getRandomChar();
-            chars[i].style.scale = '1.2';
-            chars[i].style.transform = 'translateY(-1px)';
+            if (stable) {
+              chars[i].style.opacity = '0.45';
+            } else {
+              chars[i].style.scale = '1.2';
+              chars[i].style.transform = 'translateY(-1px)';
+            }
           }
         }
         
@@ -146,6 +163,7 @@ const SequentialGlitchText = ({
               }
               span.style.scale = '1';
               span.style.transform = 'translateY(0)';
+              span.style.opacity = '';
             });
           }, 150); // 150ms instead of 200ms
         }
@@ -176,7 +194,7 @@ const SequentialGlitchText = ({
         clearTimeout(glitchTimerRef.current);
       }
     };
-  }, [text, isHovered, isInitializing, initialGlitch]);
+  }, [text, isHovered, isInitializing, initialGlitch, stable]);
   
   // Effect for the underline animation on hover
   useEffect(() => {
@@ -222,7 +240,7 @@ const SequentialGlitchText = ({
     transition: 'letter-spacing 0.2s, text-shadow 0.3s',
     wordSpacing: '0.25em', // Ensure spacing between words
     position: 'relative', // For positioning the underline bar
-    ...(isHovered && { 
+    ...(isHovered && !stable && { 
       letterSpacing: '0.5px',
     }),
     // Add glow effect for neon green

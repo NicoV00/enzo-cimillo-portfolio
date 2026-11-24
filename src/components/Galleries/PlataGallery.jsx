@@ -11,6 +11,14 @@ import CenteredImageOverlay from './CenteredImageOverlay';
 // Get the color theme for this gallery
 const galleryTheme = getGalleryColors('plata');
 
+// Proporción real (ancho / alto) de cada imagen, en el orden de `images`.
+// El ancho se fija explícito: con width auto Safari iOS estiraba las fotos.
+const RATIOS = [1.274, 1, 1, 1, 1.117, 1.6, 1.518, 4.144, 0.819, 0.8, 3.617, 0.8, 1];
+
+// Alto de pantalla de escritorio para el que está armada la composición.
+// En mobile todo (posiciones y altos) escala con el alto visible: se ve como en web, más chico.
+const REF_H = 950;
+
 // Custom font loading - solo mantenemos Medium y Myriad para otros usos en la galería
 const MediumFontStyle = styled('style')({
   '@font-face': {
@@ -68,14 +76,13 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   backgroundSize: '9600px 100%',
   backgroundAttachment: 'local',
   [theme.breakpoints.down('sm')]: {
-    overflowX: 'auto', // Changed from 'hidden' to 'auto' for horizontal scrolling on mobile
-    overflowY: 'hidden', // Changed from 'auto' to 'hidden' to prevent vertical scrolling
-    height: '100vh', // Keep full height on mobile
-    minHeight: '100vh',
-    // Exact same horizontal gradient as desktop
-    background: 'linear-gradient(to right, #e6e6e6 0%, #e6e6e6 25%, #c8c8c8 40%, #898989 55%, #3b3b3b 70%, #111111 80%, #000000 85%, #000000 100%)',
-    backgroundSize: '9600px 100%', // Same size as desktop
-    backgroundAttachment: 'local',
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    // alto visible (en iOS 100vh es más alto que la pantalla y cortaba las fotos)
+    height: '100dvh',
+    minHeight: 0,
+    // mismo degradé que en web, escalado como el contenido
+    backgroundSize: `calc(9600 * 100dvh / ${REF_H}) 100%`,
   },
 }));
 
@@ -90,22 +97,20 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '9600px', // Keep the same width as desktop
-    flexDirection: 'row', // Keep row direction for horizontal layout
-    height: '100%', // Same height as desktop
-    padding: '40px', // Same padding
-    paddingRight: '300px', // Same right padding
+    // misma composición que en web, escalada con el alto visible
+    width: `calc(9600 * 100dvh / ${REF_H})`,
+    padding: 0,
   },
 }));
 
 // Image item with GPU acceleration - Sin sombras
 const ImageItem = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isMobile' && prop !== 'top' && prop !== 'left' && prop !== 'isVisible'
-})(({ theme, top, left, width, height, zIndex = 1, isMobile = false, isVisible = true }) => ({
-  position: isMobile ? 'absolute' : 'absolute', // Changed from 'relative' to 'absolute' for mobile
-  top: isMobile ? top : top, // Use the same top positioning for mobile
-  left: isMobile ? left : left, // Use the same left positioning for mobile
-  width: width,
+  shouldForwardProp: (prop) => !['isMobile', 'top', 'left', 'isVisible', 'ratio'].includes(prop)
+})(({ theme, top, left, width, height, ratio, zIndex = 1, isMobile = false, isVisible = true }) => ({
+  position: 'absolute',
+  top,
+  left,
+  width: ratio ? `calc(${height} * ${ratio})` : width,
   height: height,
   zIndex: zIndex,
   marginBottom: isMobile ? '0' : '0', // Removed margin for mobile
@@ -174,6 +179,10 @@ const PlataGallery = ({ onBack }) => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Unidades: escritorio igual que siempre (px / vh); mobile escala con el alto visible
+  const X = (px) => (isMobile ? `calc(${px} * 100dvh / ${REF_H})` : `${px}px`);
+  const H = (vh) => (isMobile ? `${vh}dvh` : `${vh}vh`);
 
   // Optimized visibility checking - throttled for performance
   const checkVisibility = useCallback(() => {
@@ -330,23 +339,23 @@ const PlataGallery = ({ onBack }) => {
       {/* Grupo de primeras imágenes (basado en el layout que se ve en la imagen) */}
       <ImageItem
         ref={el => imageRefs.current[0] = el}
+        ratio={RATIOS[0]}
         top="90%"
-        left="450px"
-        height="10vh"
+        left={X(450)}
+        height={H(10)}
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
-      
-        onClick={() => handleImageClick(0)}>
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , pointerEvents: 'none'}}>
         <Box component="img" src={images.P1} alt="PLATA 1" loading="eager" />
       </ImageItem>
 
       <ImageItem
         ref={el => imageRefs.current[1] = el}
+        ratio={RATIOS[1]}
         top="50%"
-        left="600px"
-        height="75vh"
+        left={X(600)}
+        height={H(75)}
         zIndex={2}
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
@@ -359,9 +368,10 @@ const PlataGallery = ({ onBack }) => {
       {/* Icono plus */}
       <ImageItem
         ref={el => imageRefs.current[2] = el}
+        ratio={RATIOS[2]}
         top="50%"
-        left="1350px"
-        height="75vh"
+        left={X(1350)}
+        height={H(75)}
         zIndex={3}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
@@ -374,43 +384,42 @@ const PlataGallery = ({ onBack }) => {
       {/* Imagen central */}
       <ImageItem
         ref={el => imageRefs.current[3] = el}
+        ratio={RATIOS[3]}
         top="50%"
-        left="2000px"
-        height="100vh"
+        left={X(2000)}
+        height={H(100)}
         zIndex={2}
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
         sx={{
           transform: 'translateY(-50%) translateZ(0) rotate(10deg) scale(1.4)', // Añadido rotate y scale
           transformOrigin: 'center center',
-        cursor: 'pointer',
-        }}
-      
-        onClick={() => handleImageClick(3)}>
+        pointerEvents: 'none',
+        }}>
         <Box component="img" src={images.P4} alt="PLATA 4" loading="eager" />
       </ImageItem>
 
       {/* Logo BLUE */}
       <ImageItem
         ref={el => imageRefs.current[4] = el}
+        ratio={RATIOS[4]}
         top="80%"
-        left="2780px"
-        height="10vh"
+        left={X(2780)}
+        height={H(10)}
         zIndex={2}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
-      
-        onClick={() => handleImageClick(4)}>
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , pointerEvents: 'none'}}>
         <Box component="img" src={images.P5} alt="PLATA 5" loading="eager" />
       </ImageItem>
 
       {/* imagen central */}
       <ImageItem
         ref={el => imageRefs.current[5] = el}
+        ratio={RATIOS[5]}
         top="45%"
-        left="2900px"
-        height="60vh"
+        left={X(2900)}
+        height={H(60)}
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
@@ -423,41 +432,40 @@ const PlataGallery = ({ onBack }) => {
       {/* Logo PLATA grande como textura de fondo */}
       <ImageItem
         ref={el => imageRefs.current[6] = el}
+        ratio={RATIOS[6]}
         top="88%"
-        left="3550px"
-        height="15vh"
+        left={X(3550)}
+        height={H(15)}
         zIndex={1}
         isVisible={visibleImages[6] !== false}
         isMobile={isMobile}
         sx={{
           transform: 'translateY(-50%) translateZ(0)',
-        cursor: 'pointer',
-        }}
-      
-        onClick={() => handleImageClick(6)}>
+        pointerEvents: 'none',
+        }}>
         <Box component="img" src={images.P7} alt="PLATA 7" loading="lazy" />
       </ImageItem>
 
       {/* Imágenes en UV (morado) */}
       <ImageItem
         ref={el => imageRefs.current[7] = el}
+        ratio={RATIOS[7]}
         top="6%"
-        left="4050px"
-        height="5vh"
+        left={X(4050)}
+        height={H(5)}
         zIndex={3}
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
-        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
-      
-        onClick={() => handleImageClick(7)}>
+        sx={{ transform: 'translateY(-50%) translateZ(0)' , pointerEvents: 'none'}}>
         <Box component="img" src={images.P8} alt="PLATA 8" loading="lazy" />
       </ImageItem>
 
       <ImageItem
         ref={el => imageRefs.current[8] = el}
+        ratio={RATIOS[8]}
         top="50%"
-        left="4300px"
-        height="90vh"
+        left={X(4300)}
+        height={H(90)}
         zIndex={3}
         isVisible={visibleImages[8] !== false}
         isMobile={isMobile}
@@ -470,9 +478,10 @@ const PlataGallery = ({ onBack }) => {
       {/* remeras */}
       <ImageItem
         ref={el => imageRefs.current[9] = el}
+        ratio={RATIOS[9]}
         top="50%"
-        left="5350px"
-        height="170vh"
+        left={X(5350)}
+        height={H(170)}
         zIndex={3}
         isVisible={visibleImages[9] !== false}
         isMobile={isMobile}
@@ -484,28 +493,28 @@ const PlataGallery = ({ onBack }) => {
 
       <ImageItem
         ref={el => imageRefs.current[10] = el}
+        ratio={RATIOS[10]}
         top="55%"
-        left="5300px"
-        height="70vh"
+        left={X(5300)}
+        height={H(70)}
         zIndex={1}
         isVisible={visibleImages[10] !== false}
         isMobile={isMobile}
         sx={{
           transform: 'translateY(-50%) translateZ(0)',
           opacity: 0.2, // opacidad (0 transparente, 1 opaco)
-        cursor: 'pointer',
-        }}
-      
-        onClick={() => handleImageClick(10)}>
+        pointerEvents: 'none',
+        }}>
         <Box component="img" src={images.P11} alt="PLATA 11" loading="lazy" />
       </ImageItem>
 
       {/* Las dos últimas fotos sobre fondo negro puro */}
       <ImageItem
         ref={el => imageRefs.current[11] = el}
+        ratio={RATIOS[11]}
         top="50%"
-        left="7980px"
-        height="100vh"
+        left={X(7980)}
+        height={H(100)}
         zIndex={4}
         isVisible={visibleImages[11] !== false}
         isMobile={isMobile}
@@ -517,9 +526,10 @@ const PlataGallery = ({ onBack }) => {
 
       <ImageItem
         ref={el => imageRefs.current[12] = el}
+        ratio={RATIOS[12]}
         top="50%"
-        left="8700px"
-        height="100vh"
+        left={X(8700)}
+        height={H(100)}
         zIndex={4}
         isVisible={visibleImages[12] !== false}
         isMobile={isMobile}

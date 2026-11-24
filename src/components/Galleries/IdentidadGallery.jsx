@@ -47,7 +47,7 @@ const ScrollProgressBar = styled(Box)({
 const GalleryContainer = styled(Box)(({ theme }) => ({
   backgroundColor: galleryTheme.main,
   width: '100vw',
-  height: '100vh',
+  height: '100dvh',
   position: 'relative',
   overflowX: 'auto',
   overflowY: 'hidden',
@@ -64,8 +64,8 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     overflowX: 'auto',
     overflowY: 'hidden',
-    height: '100vh',
-    minHeight: '100vh',
+    height: '100dvh',
+    minHeight: '100dvh',
   },
 }));
 
@@ -107,7 +107,8 @@ const ImageItem = styled(Box, {
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden',
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'cover',
     borderRadius: isPhoto ? '2px' : '0',
@@ -167,78 +168,78 @@ const IdentidadGallery = ({ onBack }) => {
     // =========== IMAGEN 1 (PORTADA) ===========
     IDENTIDAD1: {
       // Desktop
-      xl: { top: "50%", left: "400px", height: "70vh", zIndex: 3 },
-      lg: { top: "50%", left: "400px", height: "70vh", innerMaxWidth: "550px", zIndex: 3 },
-      md: { top: "50%", left: "400px", height: "70vh", innerMaxWidth: "500px", zIndex: 3 },
+      xl: { top: "50%", left: "400px", height: "70dvh", zIndex: 3 },
+      lg: { top: "50%", left: "400px", height: "70dvh", innerMaxWidth: "550px", zIndex: 3 },
+      md: { top: "50%", left: "400px", height: "70dvh", innerMaxWidth: "500px", zIndex: 3 },
       // Mobile
-      sm: { top: "50%", left: "200px", height: "60vh", innerMaxWidth: "350px", zIndex: 3 },
-      xs: { top: "50%", left: "150px", height: "55vh", innerMaxWidth: "80vw", zIndex: 3 },
+      sm: { top: "50%", left: "200px", height: "60dvh", innerMaxWidth: "350px", zIndex: 3 },
+      xs: { top: "50%", left: "150px", height: "55dvh", innerMaxWidth: "80vw", zIndex: 3 },
     },
 
     // =========== IMAGEN 2 ===========
     IDENTIDAD2: {
       // Desktop
-      xl: { top: "50%", left: "1100px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
-      lg: { top: "50%", left: "1100px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
-      md: { top: "50%", left: "1100px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      xl: { top: "50%", left: "1100px", height: "70dvh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "1100px", height: "70dvh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "1100px", height: "70dvh", innerMaxWidth: "450px", zIndex: 2 },
       // Mobile
-      sm: { top: "50%", left: "700px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
-      xs: { top: "50%", left: "600px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+      sm: { top: "50%", left: "700px", height: "60dvh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "600px", height: "55dvh", innerMaxWidth: "70vw", zIndex: 2 },
     },
 
     // =========== IMAGEN 3 ===========
     IDENTIDAD3: {
       // Desktop
-      xl: { top: "50%", left: "1800px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
-      lg: { top: "50%", left: "1800px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
-      md: { top: "50%", left: "1800px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      xl: { top: "50%", left: "1800px", height: "70dvh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "1800px", height: "70dvh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "1800px", height: "70dvh", innerMaxWidth: "450px", zIndex: 2 },
       // Mobile
-      sm: { top: "50%", left: "1200px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
-      xs: { top: "50%", left: "1100px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+      sm: { top: "50%", left: "1200px", height: "60dvh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "1100px", height: "55dvh", innerMaxWidth: "70vw", zIndex: 2 },
     },
 
     // =========== IMAGEN 4 ===========
     IDENTIDAD4: {
       // Desktop
-      xl: { top: "50%", left: "2600px", height: "100vh", innerMaxWidth: "auto", zIndex: 2 },
-      lg: { top: "50%", left: "2600px", height: "95vh", innerMaxWidth: "750px", zIndex: 2 },
-      md: { top: "50%", left: "2600px", height: "90vh", innerMaxWidth: "700px", zIndex: 2 },
+      xl: { top: "50%", left: "2600px", height: "100dvh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "2600px", height: "95dvh", innerMaxWidth: "750px", zIndex: 2 },
+      md: { top: "50%", left: "2600px", height: "90dvh", innerMaxWidth: "700px", zIndex: 2 },
       // Mobile
-      sm: { top: "50%", left: "1700px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
-      xs: { top: "50%", left: "1600px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
+      sm: { top: "50%", left: "1700px", height: "90dvh", innerMaxWidth: "600px", zIndex: 2 },
+      xs: { top: "50%", left: "1600px", height: "85dvh", innerMaxWidth: "90vw", zIndex: 2 },
     },
 
     // =========== IMAGEN 5 ===========
     IDENTIDAD5: {
       // Desktop
-      xl: { top: "50%", left: "3600px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
-      lg: { top: "50%", left: "3600px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
-      md: { top: "50%", left: "3600px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      xl: { top: "50%", left: "3600px", height: "70dvh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "3600px", height: "70dvh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "3600px", height: "70dvh", innerMaxWidth: "450px", zIndex: 2 },
       // Mobile
-      sm: { top: "50%", left: "2400px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
-      xs: { top: "50%", left: "2300px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+      sm: { top: "50%", left: "2400px", height: "60dvh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "2300px", height: "55dvh", innerMaxWidth: "70vw", zIndex: 2 },
     },
 
     // =========== IMAGEN 6 ===========
     IDENTIDAD6: {
       // Desktop
-      xl: { top: "50%", left: "4300px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
-      lg: { top: "50%", left: "4300px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
-      md: { top: "50%", left: "4300px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      xl: { top: "50%", left: "4300px", height: "70dvh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "4300px", height: "70dvh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "4300px", height: "70dvh", innerMaxWidth: "450px", zIndex: 2 },
       // Mobile
-      sm: { top: "50%", left: "2900px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
-      xs: { top: "50%", left: "2800px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+      sm: { top: "50%", left: "2900px", height: "60dvh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "2800px", height: "55dvh", innerMaxWidth: "70vw", zIndex: 2 },
     },
 
     // =========== IMAGEN 7 ===========
     IDENTIDAD7: {
       // Desktop
-      xl: { top: "50%", left: "5000px", height: "70vh", innerMaxWidth: "auto", zIndex: 2 },
-      lg: { top: "50%", left: "5000px", height: "70vh", innerMaxWidth: "480px", zIndex: 2 },
-      md: { top: "50%", left: "5000px", height: "70vh", innerMaxWidth: "450px", zIndex: 2 },
+      xl: { top: "50%", left: "5000px", height: "70dvh", innerMaxWidth: "auto", zIndex: 2 },
+      lg: { top: "50%", left: "5000px", height: "70dvh", innerMaxWidth: "480px", zIndex: 2 },
+      md: { top: "50%", left: "5000px", height: "70dvh", innerMaxWidth: "450px", zIndex: 2 },
       // Mobile
-      sm: { top: "50%", left: "3400px", height: "60vh", innerMaxWidth: "300px", zIndex: 2 },
-      xs: { top: "50%", left: "3300px", height: "55vh", innerMaxWidth: "70vw", zIndex: 2 },
+      sm: { top: "50%", left: "3400px", height: "60dvh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "50%", left: "3300px", height: "55dvh", innerMaxWidth: "70vw", zIndex: 2 },
     },
   };
 

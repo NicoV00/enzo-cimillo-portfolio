@@ -40,7 +40,7 @@ const ScrollProgressBar = styled(Box)({
 const GalleryContainer = styled(Box)(({ theme }) => ({
   backgroundColor: galleryTheme.main,
   width: '100vw',
-  height: '100vh',
+  height: '100dvh',
   position: 'relative',
   overflowX: 'auto',
   overflowY: 'hidden',
@@ -57,8 +57,8 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     overflowX: 'auto',
     overflowY: 'hidden',
-    height: '100vh',
-    minHeight: '100vh',
+    height: '100dvh',
+    minHeight: '100dvh',
   },
 }));
 
@@ -98,7 +98,8 @@ const ImageItem = styled(Box, {
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden',
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
@@ -281,7 +282,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[0] = { current: el }} // Ensure ref structure compatibility
         top="50%"
         left={`${((isMobile ? 200 : 450) / TOTAL_CONTENT_WIDTH) * 100}%`} // mobile: asoma en pantalla para invitar a scrollear
-        height="85vh"
+        height="85dvh"
         // width prop intentionally omitted to let aspect ratio determine it
         zIndex={2}
         isVisible={visibleImages[0] !== false}
@@ -300,6 +301,12 @@ const AnaLivniGallery = ({ onBack }) => {
           left: `${(1300 / TOTAL_CONTENT_WIDTH) * 100}%`, // approx 17.33%
           width: `${(170 / TOTAL_CONTENT_WIDTH) * 100}%`, // approx 2.27%
           transform: 'translateY(-50%) translateZ(0)',
+          // mobile: centrado al 85% el "LIVNI" quedaba cortado abajo; se apoya sobre la nav
+          '@media (max-width: 599px)': {
+            top: 'auto',
+            bottom: 'calc(124px + env(safe-area-inset-bottom, 0px))',
+            transform: 'translateZ(0)',
+          },
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
@@ -309,15 +316,15 @@ const AnaLivniGallery = ({ onBack }) => {
           backfaceVisibility: 'hidden',
         }}
       >
-        <Box component="img" src={images.L2} alt="ANA" sx={{ width: '100%', marginBottom: '5px' , cursor: 'pointer'}} loading="eager" />
-        <Box component="img" src={images.L3} alt="LIVNI" sx={{ width: '100%' , cursor: 'pointer'}} loading="eager" />
+        <Box component="img" src={images.L2} alt="ANA" sx={{ width: '100%', marginBottom: '5px', pointerEvents: 'none' }} loading="eager" />
+        <Box component="img" src={images.L3} alt="LIVNI" sx={{ width: '100%', pointerEvents: 'none' }} loading="eager" />
       </Box>
 
       <ImageItem
         ref={el => imageRefs.current[2] = { current: el }}
         top="1%"
         left={`${(1500 / TOTAL_CONTENT_WIDTH) * 100}%`} // 20%
-        height="55vh"
+        height="55dvh"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
@@ -329,7 +336,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[3] = { current: el }}
         top="44%"
         left={`${(1875 / TOTAL_CONTENT_WIDTH) * 100}%`} // 25%
-        height="55vh"
+        height="55dvh"
         zIndex={2}
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
@@ -341,7 +348,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[4] = { current: el }}
         top="50%"
         left={`${(2460 / TOTAL_CONTENT_WIDTH) * 100}%`} // 32.8%
-        height="50vh"
+        height="50dvh"
         zIndex={1}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
@@ -354,7 +361,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[5] = { current: el }}
         top="50%"
         left={`${(3100 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 41.33%
-        height="50vh"
+        height="50dvh"
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
@@ -367,7 +374,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[6] = { current: el }}
         top="50%"
         left={`${(3750 / TOTAL_CONTENT_WIDTH) * 100}%`} // 50%
-        height="100vh"
+        height="100dvh"
         zIndex={1}
         isVisible={visibleImages[6] !== false}
         isMobile={isMobile}
@@ -380,7 +387,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[7] = { current: el }}
         top="50%"
         left={`${(5650 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 75.33%
-        height="55vh"
+        height="55dvh"
         zIndex={2}
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
@@ -393,7 +400,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[8] = { current: el }}
         top="50%"
         left={`${(5250 / TOTAL_CONTENT_WIDTH) * 100}%`} // 70%
-        height="55vh"
+        height="55dvh"
         zIndex={3}
         isVisible={visibleImages[8] !== false}
         isMobile={isMobile}
@@ -406,7 +413,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[9] = { current: el }}
         top="50%"
         left={`${(4850 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 64.67%
-        height="55vh"
+        height="55dvh"
         zIndex={2}
         isVisible={visibleImages[9] !== false}
         isMobile={isMobile}
@@ -419,7 +426,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[10] = { current: el }}
         top="35%"
         left={`${(6400 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 85.33%
-        height="70vh"
+        height="70dvh"
         zIndex={2}
         isVisible={visibleImages[10] !== false}
         isMobile={isMobile}
@@ -432,7 +439,7 @@ const AnaLivniGallery = ({ onBack }) => {
         ref={el => imageRefs.current[11] = { current: el }}
         top="65%"
         left={`${(6800 / TOTAL_CONTENT_WIDTH) * 100}%`} // approx 90.67%
-        height="70vh"
+        height="70dvh"
         zIndex={1}
         isVisible={visibleImages[11] !== false}
         isMobile={isMobile}

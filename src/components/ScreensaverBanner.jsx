@@ -43,7 +43,7 @@ const ScreensaverContainer = styled(Box)(({ isActive }) => ({
   left: 0,
   width: "100vw",
   height: "100vh",
-  zIndex: 9999,
+  zIndex: 10050, // por encima de la imagen abierta en las galerías (10000)
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -99,7 +99,7 @@ const TextSpan = styled('span')({
   fontSize: "clamp(100px, 18vw, 280px)",
   lineHeight: "1.2",
   letterSpacing: "-0.05em",
-  color: "#000000",
+  color: "var(--ss-color, #000000)",
   marginRight: "80px",
   userSelect: "none",
   display: "inline-block",
@@ -142,7 +142,7 @@ const ActivityIndicator = styled(Box)({
   },
 })
 
-const ScreensaverBanner = ({ isActive = false, onDismiss = null, onInactivityChange = null, timeout = 20000 }) => {
+const ScreensaverBanner = ({ textColor = '#000000', isActive = false, onDismiss = null, onInactivityChange = null, timeout = 20000 }) => {
   const [show, setShow] = useState(false)
   const stateRef = useRef({
     timer: null,
@@ -221,7 +221,7 @@ const ScreensaverBanner = ({ isActive = false, onDismiss = null, onInactivityCha
   const bottomLineText = "fashion photographer."
 
   return (
-    <ScreensaverContainer isActive={show}>
+    <ScreensaverContainer isActive={show} style={{ '--ss-color': textColor }}>
       <GlobalStyle />
       
       {/* Línea superior - moviendo de derecha a izquierda */}

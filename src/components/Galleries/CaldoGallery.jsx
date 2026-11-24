@@ -40,7 +40,7 @@ const ScrollProgressBar = styled(Box)({
 const GalleryContainer = styled(Box)(({ theme }) => ({
   backgroundColor: galleryTheme.main, // Using theme main color
   width: '100vw',
-  height: '100vh',
+  height: '100dvh',
   position: 'relative',
   overflowX: 'auto',
   overflowY: 'hidden',
@@ -58,8 +58,8 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
     // Keep horizontal scrolling for mobile
     overflowX: 'auto',
     overflowY: 'hidden',
-    height: '100vh', // Keep full height on mobile
-    minHeight: '100vh',
+    height: '100dvh', // Keep full height on mobile
+    minHeight: '100dvh',
   },
 }));
 
@@ -74,7 +74,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '4000px', // Aumentado de 3350px para acomodar elementos más grandes
+    width: 'calc(4000 * 100dvh / 650)', // Aumentado de 3350px para acomodar elementos más grandes
     padding: '20px', // Less padding on mobile
     paddingRight: '150px', // Less padding on mobile
   },
@@ -110,7 +110,8 @@ const ImageItem = styled(Box, {
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
@@ -537,7 +538,7 @@ const CaldoGallery = ({ onBack }) => {
         ref={el => imageRefs.current[0] = el}
         top="50%"
         left="450px"
-        height="85vh"
+        height="85dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
@@ -545,9 +546,9 @@ const CaldoGallery = ({ onBack }) => {
         sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
         // Ajustes específicos para móvil
         mobileTop="50%"
-        mobileLeft="270px"
-        mobileHeight="67vh"
-        mobileWidth="55vh"
+        mobileLeft="calc(270 * 100dvh / 650)"
+        mobileHeight="67dvh"
+        mobileWidth="55dvh"
       
         onClick={() => handleImageClick(0)}>
         <Box component="img" src={content.C1} alt="CALDO 1" loading="eager" />
@@ -558,8 +559,8 @@ const CaldoGallery = ({ onBack }) => {
         ref={el => imageRefs.current[1] = el}
         top="50%"
         left="1300px"
-        width="60vh"
-        height="80vh"
+        width="60dvh"
+        height="80dvh"
         zIndex={2}
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
@@ -568,12 +569,12 @@ const CaldoGallery = ({ onBack }) => {
         videoLeft="18%"
         videoWidth="64%"
         videoHeight="92%"
-        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
         // Ajustes específicos para móvil
         mobileTop="50%"
-        mobileLeft="780px"
-        mobileWidth="48vh"
-        mobileHeight="67vh"
+        mobileLeft="calc(780 * 100dvh / 650)"
+        mobileWidth="48dvh"
+        mobileHeight="67dvh"
       >
         <Box
           component="video"
@@ -589,7 +590,8 @@ const CaldoGallery = ({ onBack }) => {
           component="img"
           className="frame"
           src={content.LOGO}
-          alt="CALDO Video Frame"
+          alt=""
+          sx={{ pointerEvents: 'none' }}
         />
       </VideoContainer>
 
@@ -598,16 +600,16 @@ const CaldoGallery = ({ onBack }) => {
         ref={el => imageRefs.current[2] = el}
         top="0%"
         left="2000px"
-        width="100vh"
-        height="70vh"
+        width="100dvh"
+        height="70dvh"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
         // Ajustes específicos para móvil
         mobileTop="10%"
-        mobileLeft="1200px"
-        mobileWidth="73vh"
-        mobileHeight="55vh"
+        mobileLeft="calc(1200 * 100dvh / 650)"
+        mobileWidth="73dvh"
+        mobileHeight="55dvh"
       >
         <Box
           component="video"
@@ -626,16 +628,16 @@ const CaldoGallery = ({ onBack }) => {
         ref={el => imageRefs.current[3] = el}
         top="35%"
         left="2630px"
-        width="100vh"
-        height="70vh"
+        width="100dvh"
+        height="70dvh"
         zIndex={2}
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
         // Ajustes específicos para móvil
         mobileTop="40%"
-        mobileLeft="1540px"
-        mobileWidth="73vh"
-        mobileHeight="58vh"
+        mobileLeft="calc(1540 * 100dvh / 650)"
+        mobileWidth="73dvh"
+        mobileHeight="58dvh"
       >
         <Box
           component="video"
@@ -654,8 +656,8 @@ const CaldoGallery = ({ onBack }) => {
         ref={el => imageRefs.current[4] = el}
         top="50%"
         left="3500px"
-        width="60vh"
-        height="80vh"
+        width="60dvh"
+        height="80dvh"
         zIndex={2}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
@@ -664,12 +666,12 @@ const CaldoGallery = ({ onBack }) => {
         videoLeft="18%"
         videoWidth="64%"
         videoHeight="92%"
-        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
         // Ajustes específicos para móvil
         mobileTop="50%"
-        mobileLeft="2100px"
-        mobileWidth="48vh"
-        mobileHeight="67vh"
+        mobileLeft="calc(2100 * 100dvh / 650)"
+        mobileWidth="48dvh"
+        mobileHeight="67dvh"
       >
         <Box
           component="video"
@@ -685,7 +687,8 @@ const CaldoGallery = ({ onBack }) => {
           component="img"
           className="frame"
           src={content.LOGO}
-          alt="CALDO Video Frame"
+          alt=""
+          sx={{ pointerEvents: 'none' }}
         />
       </VideoContainer>
 
@@ -700,7 +703,7 @@ const CaldoGallery = ({ onBack }) => {
           transform: 'translateY(-50%) translateZ(0)',
           [theme.breakpoints.down('sm')]: {
             top: '45%',
-            left: '2550px',
+            left: 'calc(2550 * 100dvh / 650)',
             width: '450px',
           }
         }}
@@ -732,8 +735,8 @@ const CaldoGallery = ({ onBack }) => {
         ref={el => imageRefs.current[6] = el}
         top="50%"
         left="5150px"
-        width="60vh"
-        height="80vh"
+        width="60dvh"
+        height="80dvh"
         zIndex={2}
         isVisible={visibleImages[6] !== false}
         isMobile={isMobile}
@@ -742,12 +745,12 @@ const CaldoGallery = ({ onBack }) => {
         videoLeft="18%"
         videoWidth="64%"
         videoHeight="92%"
-        sx={{ transform: 'translateY(-50%) translateZ(0)' , cursor: 'pointer'}}
+        sx={{ transform: 'translateY(-50%) translateZ(0)' }}
         // Ajustes específicos para móvil
         mobileTop="50%"
-        mobileLeft="3100px"
-        mobileWidth="48vh"
-        mobileHeight="67vh"
+        mobileLeft="calc(3100 * 100dvh / 650)"
+        mobileWidth="48dvh"
+        mobileHeight="67dvh"
       >
         <Box
           component="video"
@@ -763,7 +766,8 @@ const CaldoGallery = ({ onBack }) => {
           component="img"
           className="frame"
           src={content.LOGO}
-          alt="CALDO Video Frame"
+          alt=""
+          sx={{ pointerEvents: 'none' }}
         />
       </VideoContainer>
 
@@ -779,7 +783,7 @@ const CaldoGallery = ({ onBack }) => {
           zIndex: 3,
           [theme.breakpoints.down('sm')]: {
             top: '10%',
-            left: '3670px',
+            left: 'calc(3670 * 100dvh / 650)',
             width: '175px',
           }
         }}

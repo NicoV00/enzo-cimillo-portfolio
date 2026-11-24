@@ -80,28 +80,21 @@ const CenteredImageOverlay = ({
       <Box
         onClick={onImageClick}
         sx={{
-          maxWidth: isMobile ? '85vw' : '80vw',  // Mobile: 85vw to ensure margins on sides
-          maxHeight: isMobile ? '60vh' : '80vh',  // Mobile: 60vh for better vertical spacing
-          width: isMobile ? '85vw' : 'auto',  // Force width on mobile to respect maxWidth
-          height: 'auto',
           cursor: 'pointer',
           position: 'relative',
           animation: 'scaleIn 0.3s ease',
           display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
+          // Los límites van en la imagen: con max-height en % sobre un padre de alto
+          // auto, las fotos verticales se salían de pantalla a tamaño completo.
+          // Así entra entera, centrada y con su proporción original.
           '& img': {
-            maxWidth: '100%',
-            maxHeight: '100%',
+            display: 'block',
             width: 'auto',
             height: 'auto',
+            maxWidth: isMobile ? '88vw' : '80vw',
+            maxHeight: isMobile ? '70dvh' : '84vh',
             objectFit: 'contain',
-            borderRadius: '8px',
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
-          },
-          '&:hover': {
-            transform: isMobile ? 'scale(1)' : 'scale(1.02)',  // Disable hover scale on mobile
-            transition: 'transform 0.3s ease'
           }
         }}
       >

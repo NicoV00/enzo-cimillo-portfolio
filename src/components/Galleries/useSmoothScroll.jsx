@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import Lenis from '@studio-freight/lenis';
-import { gsap } from 'gsap';
 
 /**
  * Custom hook for implementing ultra smooth scrolling with Lenis
@@ -35,6 +34,26 @@ const useSmoothScroll = ({
   const frameRef = useRef(null);
   const progressRef = useRef(0);
   const wheelHandlerRef = useRef(null);
+  const lastPublishRef = useRef(0);
+  const trailingRef = useRef(null);
+
+  // El scroll pasa ~60 veces por segundo; cada setState re-renderizaba la galería
+  // entera. La barra se mueve directo en el DOM, así que el estado (que solo usa
+  // el color de fondo) alcanza con actualizarlo ~10 veces por segundo + el valor final.
+  const publishScroll = useCallback((scroll, progressPct) => {
+    progressRef.current = progressPct;
+    const flush = () => {
+      lastPublishRef.current = performance.now();
+      trailingRef.current = null;
+      setScrollLeft(scroll);
+      setScrollProgress(progressPct);
+    };
+    clearTimeout(trailingRef.current);
+    if (performance.now() - lastPublishRef.current >= 100) flush();
+    else trailingRef.current = setTimeout(flush, 100);
+  }, []);
+
+  useEffect(() => () => clearTimeout(trailingRef.current), []);
 
   // Initialize Lenis for smooth scrolling with optimized configuration
   useEffect(() => {
@@ -81,38 +100,25 @@ const useSmoothScroll = ({
     };
     frameRef.current = requestAnimationFrame(animate);
 
+    // La barra de progreso se busca una sola vez (antes: querySelectorAll por frame)
+    const progressElements = document.querySelectorAll('[data-scroll-progress]');
+
     // Handle scroll progress and visibility checks
     lenisRef.current.on('scroll', ({ scroll, limit, velocity, direction, progress }) => {
-      // Set internal scrollLeft for other functions that need it
-      setScrollLeft(scroll);
-      
-      // Animate the progress bar with GSAP to match Lenis smoothness
-      const progressElements = document.querySelectorAll('[data-scroll-progress]');
+      // Lenis ya interpola el scroll: la barra sigue directo, sin un tween de GSAP por frame
       if (progressElements.length > 0) {
-        const scrollPercentage = (scroll / limit) * 100;
-        
-        // Use a more immediate update for the progress bar
-        gsap.to(progressElements, {
-          width: `${scrollPercentage}%`, 
-          duration: 0.05,     // Even faster updates for more responsive progress bar
-          ease: "power1.out",
-          overwrite: true
+        const scrollPercentage = limit > 0 ? (scroll / limit) * 100 : 0;
+        progressElements.forEach(el => {
+          el.style.width = `${scrollPercentage}%`;
+          // Apply highlight color if provided
+          if (colors && colors.highlight && el.style.backgroundColor !== colors.highlight) {
+            el.style.backgroundColor = colors.highlight;
+          }
         });
-        
-        // Apply highlight color if provided
-        if (colors && colors.highlight) {
-          progressElements.forEach(el => {
-            if (el.style.backgroundColor !== colors.highlight) {
-              el.style.backgroundColor = colors.highlight;
-            }
-          });
-        }
       }
-      
-      // Update state for components that need the percentage value
-      // Use a ref to ensure smoother updates with less state changes
-      progressRef.current = progress * 100;
-      setScrollProgress(progressRef.current);
+
+      // Update state for components that need it (throttled)
+      publishScroll(scroll, progress * 100);
       
       // Run visibility check function if provided - optimized to reduce checks
       if (typeof checkVisibility === 'function') {
@@ -141,9 +147,8 @@ const useSmoothScroll = ({
       }
       
       document.body.style.overscrollBehavior = '';
-      gsap.killTweensOf('[data-scroll-progress]');
     };
-  }, [isLoading, isMobile, horizontal, checkVisibility, duration, wheelMultiplier, touchMultiplier, lerp, colors]);
+  }, [isLoading, isMobile, horizontal, checkVisibility, duration, wheelMultiplier, touchMultiplier, lerp, colors, publishScroll]);
 
   // Add mouse wheel event listener to handle vertical wheel scrolling for horizontal movement
   useEffect(() => {
@@ -193,22 +198,21 @@ const useSmoothScroll = ({
     // Only apply this for mobile + horizontal scroll where we're not using Lenis
     if (!isLoading && containerRef.current && isMobile && horizontal) {
       const container = containerRef.current;
-      
+      const progressElements = document.querySelectorAll('[data-scroll-progress]');
+
       // Standard scroll handler for mobile
       const handleScroll = () => {
         const scrollPosition = horizontal ? container.scrollLeft : container.scrollTop;
-        setScrollLeft(scrollPosition);
-        
+
         // Calculate scroll progress
-        const maxScroll = horizontal 
-          ? container.scrollWidth - container.clientWidth 
+        const maxScroll = horizontal
+          ? container.scrollWidth - container.clientWidth
           : container.scrollHeight - container.clientHeight;
-        
+
         const progress = maxScroll > 0 ? (scrollPosition / maxScroll) * 100 : 0;
-        setScrollProgress(progress);
-        
+        publishScroll(scrollPosition, progress);
+
         // Update progress bar manually since Lenis isn't doing it
-        const progressElements = document.querySelectorAll('[data-scroll-progress]');
         if (progressElements.length > 0) {
           progressElements.forEach(el => {
             el.style.width = `${progress}%`;
@@ -260,7 +264,7 @@ const useSmoothScroll = ({
         }
       };
     }
-  }, [isLoading, containerRef, isMobile, horizontal, colors, wheelMultiplier]);
+  }, [isLoading, containerRef, isMobile, horizontal, colors, wheelMultiplier, publishScroll]);
 
   // Utility function to scroll to a specific position
   const scrollTo = useCallback((target, options = {}) => {

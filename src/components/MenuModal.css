@@ -1,0 +1,445 @@
+/* Menú: modal que nace de la nav (posición/tamaño del panel los anima GSAP) */
+.mmodal {
+  --mm-ease: cubic-bezier(0.19, 1, 0.22, 1);
+  --mm-pad-x: clamp(24px, 4vw, 48px);
+  --mm-label-col: 176px;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+}
+/* Velo: el blur queda fijo y solo se anima la opacidad (animar el radio del
+   backdrop-filter re-rasteriza toda la pantalla en cada frame) */
+.mmodal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.22);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.5s var(--mm-ease);
+}
+.mmodal.--visible::before { opacity: 1; }
+
+.mmodal__panel {
+  position: fixed;
+  outline: none;
+  overflow: hidden;
+  color: #8a8a8a;
+  /* la sombra grande es del modal, no de la pill: aparece al abrir y se va al cerrar */
+  box-shadow: none;
+  transition: box-shadow 0.3s ease;
+  will-change: left, top, width, height;
+}
+.mmodal.--visible .mmodal__panel { box-shadow: var(--smooth-shadow-xl); transition: box-shadow 0.5s ease 0.1s; }
+
+/* "Menu" dentro del panel durante el morph (tipografía y color copiados de la pill) */
+.mmodal__ghost {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* Contenido con el tamaño final fijo: el panel lo recorta mientras crece */
+.mmodal__inner {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  /* mismo aire arriba y abajo (la última fila no suma padding, ver :last-child) */
+  padding: clamp(22px, 3.6vh, 40px) var(--mm-pad-x);
+  /* todo en una vista: nada scrollea, las fotos absorben el alto que sobra o falta */
+  overflow: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  opacity: 0;
+  transition: opacity 0.12s ease-out;
+}
+.mmodal__inner::-webkit-scrollbar { display: none; }
+.mmodal.--visible .mmodal__inner { opacity: 1; transition: opacity 0.4s ease 0.22s; }
+
+/* Barra superior: nombre a la izquierda, acciones a la derecha (todas pills) */
+.mmodal__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  margin-bottom: clamp(14px, 2.4vh, 28px);
+}
+.mmodal__top-end { display: flex; gap: 6px; }
+
+/* Grilla editorial: 4 columnas iguales, mismo gutter en imágenes y texto */
+.mmodal__media,
+.mmodal__meta,
+.mmodal__row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--mm-gap);
+}
+.mmodal { --mm-gap: 24px; }
+
+/* Imágenes: toman todo el alto libre. La principal es cuadrada y su lado sale
+   de ese alto; la chica se apoya abajo a la derecha */
+.mmodal__media {
+  flex: 1 1 0;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+  align-items: end;
+}
+.mmodal__shot { display: block; overflow: hidden; border-radius: 12px; background: #f2f2f2; }
+.mmodal__shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s var(--mm-ease);
+}
+.mmodal__shot:hover img { transform: scale(1.03); }
+/* 2 columnas, casi cuadrada: el recorte se come el blanco de arriba de la foto */
+.mmodal__shot.--main {
+  grid-column: 1 / 3;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  justify-self: start;
+}
+.mmodal__shot.--main img { object-position: 55% 40%; }
+.mmodal__shot.--side {
+  grid-column: 4;
+  height: 46%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 4 / 5;
+  justify-self: end;
+}
+
+/* Pie de imágenes: mono chico, mismo eje que las imágenes */
+.mmodal__meta {
+  flex: none;
+  margin-top: 10px;
+  font-family: 'PP Fraktion Mono', 'Menlo', monospace;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #9a9a9a;
+}
+.mmodal__meta > :first-child { grid-column: 1 / 3; }
+.mmodal__meta > :last-child:not(:first-child) { grid-column: 4; text-align: right; }
+
+ /* Filas: label gris a la izquierda, contenido desde la mitad (como pdepablo.com) */
+.mmodal__rows { flex: none; margin-top: clamp(16px, 3.2vh, 40px); }
+.mmodal__row {
+  padding: clamp(8px, 1.6vh, 16px) 0;
+  align-items: start;
+}
+.mmodal__label {
+  grid-column: 1 / 3;
+  font-family: 'Inter Tight Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 23px;
+  color: #8a8a8a;
+}
+.mmodal__value { grid-column: 3 / 5; min-width: 0; color: #111; }
+.mmodal__value.--lead { max-width: 30em; }
+.mmodal__value span[data-original=" "] { margin-right: 0 !important; }
+
+.mmodal__pills { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.mmodal__note {
+  margin: 14px 0 0;
+  font-family: 'Inter Tight Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 21px;
+  color: #737373;
+}
+
+/* Pie: una fila de pills; el mail se estira y lleva la dirección a la derecha */
+.mmodal__foot {
+  display: flex;
+  gap: 6px;
+  flex: none;
+  margin-top: clamp(8px, 1.6vh, 16px);
+}
+/* Firma: limpia, medium y negra (como el "© 2026 P de Pablo") */
+/* Firma a la izquierda, Privacy a la derecha. Sin el tracking negativo de la pill:
+   en medium apretaba las letras de "Cimillo" */
+.mmodal__copy {
+  flex: 1 1 0;
+  justify-content: space-between;
+  min-width: 0;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: #111;
+}
+.mmodal__mail-label.--short { display: none; }
+.mmodal__legal { display: flex; gap: 16px; margin-left: auto; }
+.mmodal__legal a {
+  color: #737373;
+  font-weight: 400;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.mmodal__legal a:hover { color: #111; }
+.mmodal__mail { flex: 1.4 1 0; min-width: 0; }
+/* overflow:hidden recorta a la caja de línea: con el line-height 1 de la pill se
+   comía los descendentes (la g de gmail). Línea más alta + padding = cabe entera */
+.mmodal__mail .pill__muted {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+  padding-block: 2px;
+}
+
+/* Entradas escalonadas */
+.mmodal__top, .mmodal__media, .mmodal__meta, .mmodal__row, .mmodal__foot {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s var(--mm-ease), transform 0.8s var(--mm-ease);
+}
+.mmodal.--visible .mmodal__top { opacity: 1; transform: none; transition-delay: 0.2s; }
+.mmodal.--visible .mmodal__media { opacity: 1; transform: none; transition-delay: 0.24s; }
+.mmodal.--visible .mmodal__meta { opacity: 1; transform: none; transition-delay: 0.3s; }
+.mmodal.--visible .mmodal__row { opacity: 1; transform: none; }
+.mmodal.--visible .mmodal__row:nth-child(1) { transition-delay: 0.34s; }
+.mmodal.--visible .mmodal__row:nth-child(2) { transition-delay: 0.39s; }
+.mmodal.--visible .mmodal__row:nth-child(3) { transition-delay: 0.44s; }
+.mmodal.--visible .mmodal__foot { opacity: 1; transform: none; transition-delay: 0.5s; }
+
+/* Hora: grande, alineada al baseline del label */
+.mmodal__time {
+  font-family: 'PP Fraktion Mono', 'Menlo', monospace;
+  font-size: 17px;
+  line-height: 23px;
+  letter-spacing: -0.01em;
+  color: #111;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.mmodal__colon { animation: mmodal-blink 1s steps(1) infinite; }
+.mmodal__tz {
+  margin-left: 12px;
+  /* #767676 o más oscuro: contraste AA (4.5:1) sobre blanco */
+  color: #737373;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+@keyframes mmodal-blink { 50% { opacity: 0.3; } }
+
+/* ───────── Cursor lupa (solo puntero fino, mientras el modal está abierto) ───────── */
+/* El overlay cubre toda la pantalla: alcanza con ocultarlo acá (no en html *) */
+.mmodal.--nocursor,
+.mmodal.--nocursor * { cursor: none !important; }
+
+.mcursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10002;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  color: #111;
+  /* vidrio claro estilo iOS: sin tinte, el aro lo dibuja el reflejo (.mcursor__glare) */
+  background: transparent;
+  -webkit-backdrop-filter: saturate(1.1);
+  backdrop-filter: saturate(1.1);
+  box-shadow:
+    inset 0 0 3px rgba(255, 255, 255, 0.3),
+    0 0 0 0.5px rgba(0, 0, 0, 0.08),
+    0 10px 24px -10px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  will-change: transform;
+  /* el transform (posición + escala) lo maneja el JS */
+  transition: opacity 0.25s ease, background 0.3s ease, border-radius 0.35s cubic-bezier(0.19, 1, 0.22, 1), box-shadow 0.3s ease;
+}
+/* Chromium: aumento + distorsión hacia las puntas + difusión (SVG #mlens) */
+.mcursor.--refract {
+  -webkit-backdrop-filter: url(#mlens);
+  backdrop-filter: url(#mlens);
+}
+.mcursor.--visible { opacity: 1; }
+
+.mcursor__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* Reflejo especular de iOS: un aro fino, brillante arriba-izquierda y abajo-derecha */
+.mcursor__glare {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: 1.5px;
+  background: conic-gradient(
+    from 200deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.2) 22%,
+    rgba(255, 255, 255, 0.06) 38%,
+    rgba(255, 255, 255, 0.55) 52%,
+    rgba(255, 255, 255, 0.1) 72%,
+    rgba(255, 255, 255, 0.95)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+/* destello al hacer click */
+.mcursor::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0);
+  pointer-events: none;
+}
+.mcursor.--flash::after { animation: mcursor-flash 0.55s cubic-bezier(0.19, 1, 0.22, 1); }
+@keyframes mcursor-flash {
+  0% { background: rgba(255, 255, 255, 0.55); }
+  100% { background: rgba(255, 255, 255, 0); }
+}
+
+.mcursor__x {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  opacity: 0;
+  transform: scale(0.6) rotate(-45deg);
+  transition: opacity 0.25s ease, transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.mcursor__x svg { width: 42px; height: 42px; } /* x 1/3 = 14px, como la X del carrusel */
+
+/* Fuera del panel: la lupa se achica a 1/3 (en JS, 120 -> 40px) y queda idéntica a la
+   X del carrusel (.pcursor--x.g-dark). Como el transform escala todo, radio, blur y
+   sombras van x3 para que se vean iguales. */
+.mcursor.--outside {
+  border-radius: 50%; /* igual que la X del carrusel (círculo) */
+  background: var(--g-dark-bg);
+  -webkit-backdrop-filter: blur(75px);
+  backdrop-filter: blur(75px);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.22),
+    inset 0 3px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -3px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 54px rgba(255, 255, 255, 0.05),
+    0 3px 3px rgba(0, 0, 0, 0.06),
+    0 12px 36px -12px rgba(0, 0, 0, 0.14);
+}
+.mcursor.--outside .mcursor__glare { opacity: 0; }
+.mcursor__glare { transition: opacity 0.25s ease; }
+.mcursor.--outside .mcursor__x { opacity: 1; transform: none; }
+
+@media (max-width: 699px) {
+  /* en teléfonos muy bajos, como último recurso, se puede scrollear */
+  .mmodal__inner { padding: 18px 18px 20px; overflow-y: auto; }
+  .mmodal__media { min-height: 140px; }
+  .mmodal__panel:focus { outline: none; }
+  .mmodal { --mm-gap: 12px; }
+  .mmodal__top .pill { --pill-h: 38px; --pill-px: 15px; font-size: 14px; }
+  /* Una sola foto en el teléfono: la principal a todo el ancho; la chica se
+     comprimía en la última columna */
+  .mmodal__shot.--main { grid-column: 1 / -1; width: 100%; aspect-ratio: auto; }
+  .mmodal__shot.--side { display: none; }
+  .mmodal__rows { margin-top: 14px; }
+  /* Filas apiladas: label arriba, contenido abajo */
+  .mmodal__row { row-gap: 8px; padding: 10px 0; }
+  .mmodal__label, .mmodal__value { grid-column: 1 / -1; }
+  .mmodal__pills .pill { --pill-h: 46px; font-size: 15px; }
+  /* Como pdepablo en el teléfono: la firma a lo ancho y abajo los links en
+     pills iguales, solo con su nombre (el mail entero no entra) */
+  .mmodal__foot { flex-wrap: wrap; }
+  /* la firma va debajo de Instagram y Email */
+  .mmodal__copy { flex: 1 1 100%; order: 1; }
+  .mmodal__foot > a { flex: 1 1 0; justify-content: center; }
+  .mmodal__mail .pill__muted,
+  .mmodal__mail-label:not(.--short) { display: none; }
+  .mmodal__mail-label.--short { display: inline; }
+  .mmodal__foot .pill { --pill-h: 48px; }
+  .mmodal__meta > :first-child { grid-column: 1 / -1; }
+  .mmodal__meta > :last-child:not(:first-child) { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mmodal__top, .mmodal__media, .mmodal__meta, .mmodal__row, .mmodal__foot { transition-duration: 0.01s !important; transition-delay: 0s !important; transform: none !important; }
+}
+
+/* Nombre del fotógrafo: más presencia que el resto de las pills */
+.mmodal__top .pill.mmodal__name {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: #111;
+}
+
+/* What I do: dos pills por línea, todas del mismo ancho y un poco más grandes.
+   Con un número impar de servicios la última ocupa la fila entera */
+.mmodal__pills { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mmodal__pills li { display: flex; }
+.mmodal__pills .pill { --pill-h: 50px; --pill-px: 20px; width: 100%; font-size: 16px; }
+.mmodal__pills li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+/* Compact information column and two-tier contact area. */
+.mmodal__row { column-gap: 18px; }
+.mmodal__label { grid-column: 2; justify-self: end; text-align: right; }
+.mmodal__foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+.mmodal__foot .mmodal__mail { grid-column: 1 / -1; width: 100%; }
+.mmodal__foot .mmodal__copy { min-width: 0; }
+@media (max-width: 699px) {
+  .mmodal__label { grid-column: 1 / -1; justify-self: start; text-align: left; }
+  .mmodal__foot .mmodal__copy { order: 0; }
+  .mmodal__foot > a { justify-content: space-between; }
+  .mmodal__foot .mmodal__mail .pill__muted { display: inline; }
+  .mmodal__foot .mmodal__instagram { justify-content: center; }
+}
+
+/* Align the latest project and footer with the information column. */
+@media (min-width: 700px) {
+  .mmodal__top { justify-content: flex-end; }
+  .mmodal__top .mmodal__name { --pill-px: 14px; margin-right: auto; margin-left: calc(50% + 12px); }
+  .mmodal__shot.--main { grid-column: 3 / 5; justify-self: start; }
+  .mmodal__meta > :first-child { grid-column: 3 / 5; }
+  .mmodal__foot { width: calc(50% - 12px); align-self: flex-end; grid-template-columns: minmax(0, 1fr) auto; }
+  .mmodal__foot .mmodal__mail { grid-column: 1 / -1; }
+  .mmodal__foot .mmodal__copy { gap: 12px; }
+  .mmodal__foot .mmodal__instagram { white-space: nowrap; }
+}
+@media (max-width: 699px) {
+  .mmodal__foot { width: 100%; }
+  .mmodal__foot .mmodal__copy { --pill-px: 12px; gap: 8px; font-size: 12px; }
+  .mmodal__foot .mmodal__instagram { --pill-px: 12px; }
+}
+
+/* The panel follows its content: no unused left half. */
+@media (min-width: 700px) {
+  .mmodal__top { justify-content: space-between; }
+  .mmodal__top .mmodal__name { margin: 0; }
+  .mmodal__media, .mmodal__meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mmodal__shot.--main { grid-column: 1 / -1; }
+  .mmodal__meta > :first-child { grid-column: 1 / -1; }
+  .mmodal__row { grid-template-columns: minmax(120px, 0.8fr) minmax(0, 2fr); gap: 18px; }
+  .mmodal__label { grid-column: 1; justify-self: start; text-align: left; }
+  .mmodal__value { grid-column: 2; }
+  .mmodal__foot { width: calc((100% - 18px) * 2 / 2.8); }
+}
+
+@media (max-width: 699px) {
+  .mmodal__row--location { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; column-gap: 12px; }
+  .mmodal__row--location .mmodal__label { grid-column: 1; }
+  .mmodal__row--location .mmodal__value { grid-column: 2; justify-self: end; text-align: right; white-space: nowrap; }
+}
+
+@media (min-width: 700px) {
+  .mmodal__top .pill, .mmodal__foot .pill { --pill-h: 47px; --pill-px: 21px; }
+  .mmodal__pills .pill { --pill-h: 52px; }
+}
+.mmodal .pill__arrow { width: 10px; height: 10px; opacity: .8; }

@@ -92,7 +92,7 @@ const GalleryContainer = styled(Box, {
   return {
     backgroundColor: bgColor,
     width: '100vw',
-    height: '100vh',
+    height: '100dvh',
     position: 'relative',
     overflowX: 'auto',
     overflowY: 'hidden',
@@ -157,7 +157,8 @@ const ImageItem = styled(Box, {
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden',
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'contain',
     borderRadius: isPhoto ? '2px' : '0',
@@ -223,120 +224,120 @@ const MarcosGallery = ({ onBack }) => {
     // =========== IMAGEN 1 (PNG) ===========
     MARCOS1: {
       // Desktop - valores originales sin cambios
-      xl: { top: "80%", left: "200px", height: "80vh", innerMaxWidth: "600px", zIndex: 3 },
-      lg: { top: "80%", left: "100px", height: "75vh", innerMaxWidth: "550px", zIndex: 3 },
-      md: { top: "75%", left: "100px", height: "70vh", innerMaxWidth: "500px", zIndex: 3 },
+      xl: { top: "80%", left: "200px", height: "80dvh", innerMaxWidth: "600px", zIndex: 3 },
+      lg: { top: "80%", left: "100px", height: "75dvh", innerMaxWidth: "550px", zIndex: 3 },
+      md: { top: "75%", left: "100px", height: "70dvh", innerMaxWidth: "500px", zIndex: 3 },
       // Móvil - AJUSTADO: Posición más abajo para superposición
-      sm: { top: "65%", left: "120px", height: "70vh", innerMaxWidth: "350px", zIndex: 3 },
-      xs: { top: "65%", left: "80px", height: "65vh", innerMaxWidth: "80vw", zIndex: 3 },
+      sm: { top: "65%", left: "120px", height: "70dvh", innerMaxWidth: "350px", zIndex: 3 },
+      xs: { top: "65%", left: "80px", height: "65dvh", innerMaxWidth: "80vw", zIndex: 3 },
       // Para ajustar la posición vertical en móvil, modifica el valor de "top" en sm y xs
     },
 
     // =========== IMAGEN 2 ===========
     MARCOS2: {
       // Desktop - valores originales sin cambios
-      xl: { top: "50%", left: "450px", height: "80vh", innerMaxWidth: "600px", zIndex: 2 },
-      lg: { top: "50%", left: "320px", height: "75vh", innerMaxWidth: "550px", zIndex: 2 },
-      md: { top: "50%", left: "280px", height: "70vh", innerMaxWidth: "500px", zIndex: 2 },
+      xl: { top: "50%", left: "450px", height: "80dvh", innerMaxWidth: "600px", zIndex: 2 },
+      lg: { top: "50%", left: "320px", height: "75dvh", innerMaxWidth: "550px", zIndex: 2 },
+      md: { top: "50%", left: "280px", height: "70dvh", innerMaxWidth: "500px", zIndex: 2 },
       // Móvil - AJUSTADO: Más a la izquierda para superposición
-      sm: { top: "45%", left: "250px", height: "70vh", innerMaxWidth: "350px", zIndex: 2 },
-      xs: { top: "45%", left: "200px", height: "65vh", innerMaxWidth: "80vw", zIndex: 2 },
+      sm: { top: "45%", left: "250px", height: "70dvh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "45%", left: "200px", height: "65dvh", innerMaxWidth: "80vw", zIndex: 2 },
       // Para ajustar la superposición en móvil, modifica el valor de "left" en sm y xs
     },
 
     // =========== IMAGEN 3 ===========
     MARCOS3: {
       // Desktop - valores originales sin cambios
-      xl: { top: "50%", left: "1100px", height: "80vh", innerMaxWidth: "600px", zIndex: 2 },
-      lg: { top: "50%", left: "1050px", height: "75vh", innerMaxWidth: "550px", zIndex: 2 },
-      md: { top: "50%", left: "950px", height: "70vh", innerMaxWidth: "500px", zIndex: 2 },
+      xl: { top: "50%", left: "1100px", height: "80dvh", innerMaxWidth: "600px", zIndex: 2 },
+      lg: { top: "50%", left: "1050px", height: "75dvh", innerMaxWidth: "550px", zIndex: 2 },
+      md: { top: "50%", left: "950px", height: "70dvh", innerMaxWidth: "500px", zIndex: 2 },
       // Móvil - AJUSTADO: Más a la izquierda
-      sm: { top: "45%", left: "700px", height: "70vh", innerMaxWidth: "350px", zIndex: 2 },
-      xs: { top: "45%", left: "600px", height: "65vh", innerMaxWidth: "80vw", zIndex: 2 },
+      sm: { top: "45%", left: "700px", height: "70dvh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "45%", left: "600px", height: "65dvh", innerMaxWidth: "80vw", zIndex: 2 },
       // Para ajustar en móvil, modifica el valor de "left" en sm y xs
     },
 
     // =========== IMAGEN 4 ===========
     MARCOS4: {
       // Desktop - valores originales sin cambios
-      xl: { top: "50%", left: "1750px", height: "80vh", innerMaxWidth: "600px", zIndex: 2 },
-      lg: { top: "50%", left: "1600px", height: "75vh", innerMaxWidth: "550px", zIndex: 2 },
-      md: { top: "50%", left: "1450px", height: "70vh", innerMaxWidth: "500px", zIndex: 2 },
+      xl: { top: "50%", left: "1750px", height: "80dvh", innerMaxWidth: "600px", zIndex: 2 },
+      lg: { top: "50%", left: "1600px", height: "75dvh", innerMaxWidth: "550px", zIndex: 2 },
+      md: { top: "50%", left: "1450px", height: "70dvh", innerMaxWidth: "500px", zIndex: 2 },
       // Móvil - AJUSTADO: Más a la izquierda
-      sm: { top: "45%", left: "1150px", height: "70vh", innerMaxWidth: "350px", zIndex: 2 },
-      xs: { top: "45%", left: "1050px", height: "65vh", innerMaxWidth: "80vw", zIndex: 2 },
+      sm: { top: "45%", left: "1150px", height: "70dvh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "45%", left: "1050px", height: "65dvh", innerMaxWidth: "80vw", zIndex: 2 },
       // Para ajustar en móvil, modifica el valor de "left" en sm y xs
     },
 
     // =========== IMAGEN 5 (PORTADA) ===========
     MARCOS5: {
       // Desktop - valores originales sin cambios
-      xl: { top: "50%", left: "2800px", height: "100vh", innerMaxWidth: "800px", zIndex: 2 },
-      lg: { top: "50%", left: "2500px", height: "95vh", innerMaxWidth: "750px", zIndex: 2 },
-      md: { top: "50%", left: "2200px", height: "90vh", innerMaxWidth: "700px", zIndex: 2 },
+      xl: { top: "50%", left: "2800px", height: "100dvh", innerMaxWidth: "800px", zIndex: 2 },
+      lg: { top: "50%", left: "2500px", height: "95dvh", innerMaxWidth: "750px", zIndex: 2 },
+      md: { top: "50%", left: "2200px", height: "90dvh", innerMaxWidth: "700px", zIndex: 2 },
       // Móvil - AJUSTADO: Más a la izquierda
-      sm: { top: "45%", left: "1750px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
-      xs: { top: "45%", left: "1600px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
+      sm: { top: "45%", left: "1750px", height: "90dvh", innerMaxWidth: "600px", zIndex: 2 },
+      xs: { top: "45%", left: "1600px", height: "85dvh", innerMaxWidth: "90vw", zIndex: 2 },
       // Para ajustar en móvil, modifica el valor de "left" en sm y xs
     },
 
     // =========== IMAGEN 6 ===========
     MARCOS6: {
       // Desktop - valores originales sin cambios
-      xl: { top: "45%", left: "3300px", height: "60vh", innerMaxWidth: "450px", zIndex: 2 },
-      lg: { top: "45%", left: "3000px", height: "55vh", innerMaxWidth: "420px", zIndex: 2 },
-      md: { top: "45%", left: "2800px", height: "50vh", innerMaxWidth: "400px", zIndex: 2 },
+      xl: { top: "45%", left: "3300px", height: "60dvh", innerMaxWidth: "450px", zIndex: 2 },
+      lg: { top: "45%", left: "3000px", height: "55dvh", innerMaxWidth: "420px", zIndex: 2 },
+      md: { top: "45%", left: "2800px", height: "50dvh", innerMaxWidth: "400px", zIndex: 2 },
       // Móvil - AJUSTADO: Más a la izquierda
-      sm: { top: "40%", left: "2200px", height: "50vh", innerMaxWidth: "300px", zIndex: 2 },
-      xs: { top: "40%", left: "2100px", height: "45vh", innerMaxWidth: "70vw", zIndex: 2 },
+      sm: { top: "40%", left: "2200px", height: "50dvh", innerMaxWidth: "300px", zIndex: 2 },
+      xs: { top: "40%", left: "2100px", height: "45dvh", innerMaxWidth: "70vw", zIndex: 2 },
       // Para ajustar en móvil, modifica el valor de "left" en sm y xs
     },
 
     // =========== IMAGEN 7 ===========
     MARCOS7: {
       // Desktop - valores originales sin cambios
-      xl: { top: "25%", left: "4350px", height: "55vh", innerMaxWidth: "550px", zIndex: 2 },
-      lg: { top: "28%", left: "4000px", height: "55vh", innerMaxWidth: "520px", zIndex: 2 },
-      md: { top: "28%", left: "3600px", height: "50vh", innerMaxWidth: "500px", zIndex: 2 },
+      xl: { top: "25%", left: "4350px", height: "55dvh", innerMaxWidth: "550px", zIndex: 2 },
+      lg: { top: "28%", left: "4000px", height: "55dvh", innerMaxWidth: "520px", zIndex: 2 },
+      md: { top: "28%", left: "3600px", height: "50dvh", innerMaxWidth: "500px", zIndex: 2 },
       // Móvil - AJUSTADO: Más a la izquierda
-      sm: { top: "25%", left: "2800px", height: "40vh", innerMaxWidth: "400px", zIndex: 2 },
-      xs: { top: "25%", left: "2500px", height: "35vh", innerMaxWidth: "75vw", zIndex: 2 },
+      sm: { top: "25%", left: "2800px", height: "40dvh", innerMaxWidth: "400px", zIndex: 2 },
+      xs: { top: "25%", left: "2500px", height: "35dvh", innerMaxWidth: "75vw", zIndex: 2 },
       // Para ajustar en móvil, modifica el valor de "left" en sm y xs
     },
 
     // =========== IMAGEN 8 ===========
     MARCOS8: {
       // Desktop - valores originales sin cambios
-      xl: { top: "55%", left: "5000px", height: "70vh", innerMaxWidth: "550px", zIndex: 2 },
-      lg: { top: "55%", left: "4800px", height: "70vh", innerMaxWidth: "520px", zIndex: 2 },
-      md: { top: "55%", left: "4300px", height: "65vh", innerMaxWidth: "500px", zIndex: 2 },
+      xl: { top: "55%", left: "5000px", height: "70dvh", innerMaxWidth: "550px", zIndex: 2 },
+      lg: { top: "55%", left: "4800px", height: "70dvh", innerMaxWidth: "520px", zIndex: 2 },
+      md: { top: "55%", left: "4300px", height: "65dvh", innerMaxWidth: "500px", zIndex: 2 },
       // Móvil - AJUSTADO: Más a la izquierda
-      sm: { top: "50%", left: "3300px", height: "60vh", innerMaxWidth: "350px", zIndex: 2 },
-      xs: { top: "50%", left: "3200px", height: "55vh", innerMaxWidth: "80vw", zIndex: 2 },
+      sm: { top: "50%", left: "3300px", height: "60dvh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "50%", left: "3200px", height: "55dvh", innerMaxWidth: "80vw", zIndex: 2 },
       // Para ajustar en móvil, modifica el valor de "left" en sm y xs
     },
 
     // =========== IMAGEN 9 ===========
     MARCOS9: {
       // Desktop - valores originales sin cambios
-      xl: { top: "55%", left: "5550px", height: "70vh", innerMaxWidth: "550px", zIndex: 2 },
-      lg: { top: "55%", left: "5300px", height: "70vh", innerMaxWidth: "520px", zIndex: 2 },
-      md: { top: "55%", left: "4800px", height: "65vh", innerMaxWidth: "500px", zIndex: 2 },
+      xl: { top: "55%", left: "5550px", height: "70dvh", innerMaxWidth: "550px", zIndex: 2 },
+      lg: { top: "55%", left: "5300px", height: "70dvh", innerMaxWidth: "520px", zIndex: 2 },
+      md: { top: "55%", left: "4800px", height: "65dvh", innerMaxWidth: "500px", zIndex: 2 },
       // Móvil - AJUSTADO: Más a la izquierda
-      sm: { top: "50%", left: "3700px", height: "60vh", innerMaxWidth: "350px", zIndex: 2 },
-      xs: { top: "50%", left: "3500px", height: "55vh", innerMaxWidth: "80vw", zIndex: 2 },
+      sm: { top: "50%", left: "3700px", height: "60dvh", innerMaxWidth: "350px", zIndex: 2 },
+      xs: { top: "50%", left: "3500px", height: "55dvh", innerMaxWidth: "80vw", zIndex: 2 },
       // Para ajustar en móvil, modifica el valor de "left" en sm y xs
     },
 
     // =========== IMAGEN 10 (ÚLTIMA) ===========
     MARCOS10: {
       // Desktop - valores originales sin cambios
-      xl: { top: "50%", left: "6600px", height: "100vh", innerMaxWidth: "750px", zIndex: 2 },
-      lg: { top: "50%", left: "6000px", height: "95vh", innerMaxWidth: "700px", zIndex: 2 },
-      md: { top: "50%", left: "5400px", height: "90vh", innerMaxWidth: "650px", zIndex: 2 },
+      xl: { top: "50%", left: "6600px", height: "100dvh", innerMaxWidth: "750px", zIndex: 2 },
+      lg: { top: "50%", left: "6000px", height: "95dvh", innerMaxWidth: "700px", zIndex: 2 },
+      md: { top: "50%", left: "5400px", height: "90dvh", innerMaxWidth: "650px", zIndex: 2 },
       // Móvil - AJUSTADO: Más a la izquierda
-      sm: { top: "45%", left: "4300px", height: "90vh", innerMaxWidth: "600px", zIndex: 2 },
-      xs: { top: "45%", left: "4000px", height: "85vh", innerMaxWidth: "90vw", zIndex: 2 },
+      sm: { top: "45%", left: "4300px", height: "90dvh", innerMaxWidth: "600px", zIndex: 2 },
+      xs: { top: "45%", left: "4000px", height: "85dvh", innerMaxWidth: "90vw", zIndex: 2 },
       // Para ajustar en móvil, modifica el valor de "left" en sm y xs
     },
   };
@@ -573,7 +574,7 @@ const MarcosGallery = ({ onBack }) => {
 
       {/* Loading screen component */}
       <GalleryLoadingScreen
-        title="Catalogo MUF"
+        title="Catálogo MUF"
         year="2024"
         loading={loading}
         loadProgress={loadProgress}

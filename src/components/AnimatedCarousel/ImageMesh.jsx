@@ -15,12 +15,15 @@ const ImageMesh = React.memo(({
   // Durante la transición de la intro la imagen pasa bajo el cursor: sin hover
   hoverDisabled = false,
   onGalleryToggle,
+  isDimmed = false,
+  onHoverChange,
   isMobile = false // New prop for mobile optimization
 }) => {
   const [texture, setTexture] = useState(null);
   const [aspectRatio, setAspectRatio] = useState(1);
   const [isHovered, setIsHovered] = useState(false);
   const meshRef = useRef();
+  const materialRef = useRef();
   
   const galleryColors = getGalleryColors(textureUrl);
   
@@ -115,25 +118,37 @@ const ImageMesh = React.memo(({
   
   useEffect(() => {
     if (isSelected && meshRef.current) {
+      gsap.killTweensOf(meshRef.current.scale); // que un hover a medias no pise la escala de selección
       meshRef.current.scale.set(1.05, 1.05, 1.05);
     } else if (!isHovered && meshRef.current) {
       meshRef.current.scale.set(1, 1, 1);
     }
   }, [isSelected]);
   
+  // Apagado suave cuando otra imagen está en hover
+  useEffect(() => {
+    const mat = materialRef.current;
+    if (!mat) return;
+    const v = isDimmed ? 0.48 : 1;
+    // apagar rápido, volver a prender más lento (así no parpadea al cruzar entre imágenes)
+    gsap.to(mat.color, { r: v, g: v, b: v, duration: isDimmed ? 0.35 : 0.6, ease: 'power2.out', overwrite: true });
+  }, [isDimmed, texture]);
+
   const handlePointerOver = () => {
     // Disable hover effects on mobile to improve performance
     if (isMobile || hoverDisabled) return;
     
     setIsHovered(true);
+    onHoverChange?.(true);
     
     if (!isSelected && meshRef.current) {
       gsap.to(meshRef.current.scale, {
-        x: 1.05,
-        y: 1.05,
-        z: 1.05,
-        duration: 0.3,
-        ease: "power2.out"
+        x: 1.07,
+        y: 1.07,
+        z: 1.07,
+        duration: 0.7,
+        ease: "power3.out",
+        overwrite: true
       });
     }
   };
@@ -142,14 +157,16 @@ const ImageMesh = React.memo(({
     if (isMobile || hoverDisabled) return;
     
     setIsHovered(false);
+    onHoverChange?.(false);
     
     if (!isSelected && meshRef.current) {
       gsap.to(meshRef.current.scale, {
         x: 1,
         y: 1,
         z: 1,
-        duration: 0.3,
-        ease: "power2.out"
+        duration: 0.6,
+        ease: "power3.out",
+        overwrite: true
       });
     }
   };
@@ -171,6 +188,7 @@ const ImageMesh = React.memo(({
       >
         <planeGeometry args={geometryArgs} />
         <meshBasicMaterial
+          ref={materialRef}
           map={texture}
           transparent
           // Sin tone mapping: la foto se ve igual que en el video / en la web

@@ -94,7 +94,7 @@ const GalleryContainer = styled(Box, {
   return {
     backgroundColor: bgColor,
     width: '100vw',
-    height: '100vh',
+    height: '100dvh',
     position: 'relative',
     overflowX: 'auto',
     overflowY: 'hidden',
@@ -110,11 +110,11 @@ const GalleryContainer = styled(Box, {
     msOverflowStyle: 'none',
     transition: 'background-color 0.1s ease-out',
     // Ensures full height on all devices
-    minHeight: '100vh',
+    minHeight: '100dvh',
     [theme.breakpoints.down('sm')]: {
       overflowX: 'auto', // Ensure horizontal scrolling on mobile
       overflowY: 'hidden', // Prevent vertical scrolling
-      height: '100vh',
+      height: '100dvh',
     },
   };
 });
@@ -187,7 +187,8 @@ const ImageItem = styled(Box, {
   // Styles for the inner image element
   '& img': {
     display: 'block', // Prevents potential bottom space
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
@@ -493,9 +494,9 @@ const KaboaGallery = ({ onBack }) => {
       {/* Image 1 */}
       <ImageItem
         ref={el => imageRefs.current[0] = el}
-        top="50%" left="450px" height="80vh" width="auto" zIndex={2}
+        top="50%" left="450px" height="80dvh" width="auto" zIndex={2}
         isVisible={visibleImages[0] !== false}
-        mobileTop="45%" mobileLeft="270px" mobileHeight="75vh" mobileWidth="85vw"
+        mobileTop="45%" mobileLeft="270px" mobileHeight="75dvh" mobileWidth="85vw"
       
         onClick={() => handleImageClick(0)}
         sx={{ cursor: 'pointer' }}>
@@ -505,9 +506,9 @@ const KaboaGallery = ({ onBack }) => {
       {/* Image 2 */}
       <ImageItem
         ref={el => imageRefs.current[1] = el}
-        top="50%" left="1400px" height="85vh" width="auto" zIndex={2}
+        top="50%" left="1400px" height="85dvh" width="auto" zIndex={2}
         isVisible={visibleImages[1] !== false}
-        mobileTop="45%" mobileLeft="840px" mobileHeight="75vh" mobileWidth="85vw"
+        mobileTop="45%" mobileLeft="840px" mobileHeight="75dvh" mobileWidth="85vw"
       
         onClick={() => handleImageClick(1)}
         sx={{ cursor: 'pointer' }}>
@@ -517,9 +518,9 @@ const KaboaGallery = ({ onBack }) => {
       {/* Image 3 */}
       <ImageItem
         ref={el => imageRefs.current[2] = el}
-        top="33%" left="2100px" height="45vh" width="auto" zIndex={2}
+        top="33%" left="2100px" height="45dvh" width="auto" zIndex={2}
         isVisible={visibleImages[2] !== false}
-        mobileTop="33%" mobileLeft="1260px" mobileHeight="40vh" mobileWidth="65vw"
+        mobileTop="33%" mobileLeft="1260px" mobileHeight="40dvh" mobileWidth="65vw"
       
         onClick={() => handleImageClick(2)}
         sx={{ cursor: 'pointer' }}>
@@ -529,9 +530,9 @@ const KaboaGallery = ({ onBack }) => {
       {/* Image 4 */}
       <ImageItem
         ref={el => imageRefs.current[3] = el}
-        top="50%" left="2700px" height="80vh" width="auto" zIndex={2}
+        top="50%" left="2700px" height="80dvh" width="auto" zIndex={2}
         isVisible={visibleImages[3] !== false}
-        mobileTop="45%" mobileLeft="1620px" mobileHeight="75vh" mobileWidth="85vw"
+        mobileTop="45%" mobileLeft="1620px" mobileHeight="75dvh" mobileWidth="85vw"
       
         onClick={() => handleImageClick(3)}
         sx={{ cursor: 'pointer' }}>
@@ -541,9 +542,9 @@ const KaboaGallery = ({ onBack }) => {
       {/* Image 5 */}
       <ImageItem
         ref={el => imageRefs.current[4] = el}
-        top="50%" left="3500px" height="80vh" width="auto" zIndex={2}
+        top="50%" left="3500px" height="80dvh" width="auto" zIndex={2}
         isVisible={visibleImages[4] !== false}
-        mobileTop="45%" mobileLeft="2100px" mobileHeight="75vh" mobileWidth="180vw"
+        mobileTop="45%" mobileLeft="2100px" mobileHeight="75dvh" mobileWidth="180vw"
       
         onClick={() => handleImageClick(4)}
         sx={{ cursor: 'pointer' }}>
@@ -553,9 +554,9 @@ const KaboaGallery = ({ onBack }) => {
       {/* Image 6 */}
       <ImageItem
         ref={el => imageRefs.current[5] = el}
-        top="42%" left="4450px" height="70vh" width="auto" zIndex={2}
+        top="42%" left="4450px" height="70dvh" width="auto" zIndex={2}
         isVisible={visibleImages[5] !== false}
-        mobileTop="42%" mobileLeft="2670px" mobileHeight="63vh" mobileWidth="85vw"
+        mobileTop="42%" mobileLeft="2670px" mobileHeight="63dvh" mobileWidth="85vw"
       
         onClick={() => handleImageClick(5)}
         sx={{ cursor: 'pointer' }}>
@@ -565,10 +566,10 @@ const KaboaGallery = ({ onBack }) => {
       {/* Video 7 in frame */}
       <VideoContainer
         ref={el => imageRefs.current[6] = el}
-        top="50%" left="5300px" width="70vh" height="90vh" zIndex={2}
+        top="50%" left="5300px" width="70dvh" height="90dvh" zIndex={2}
         isVisible={visibleImages[6] !== false}
         videoTop="3%" videoLeft="17%" videoWidth="67%" videoHeight="94%"
-        mobileTop="45%" mobileLeft="3180px" mobileHeight="75vh" mobileWidth="85vw"
+        mobileTop="45%" mobileLeft="3180px" mobileHeight="75dvh" mobileWidth="85vw"
         mobileVideoTop="3%" mobileVideoLeft="7%" mobileVideoWidth="86%" mobileVideoHeight="94%"
       >
         <Box
@@ -583,9 +584,9 @@ const KaboaGallery = ({ onBack }) => {
       {/* Image 8 */}
       <ImageItem
         ref={el => imageRefs.current[7] = el}
-        top="50%" left="6200px" height="80vh" width="auto" zIndex={2}
+        top="50%" left="6200px" height="80dvh" width="auto" zIndex={2}
         isVisible={visibleImages[7] !== false}
-        mobileTop="45%" mobileLeft="3720px" mobileHeight="72vh" mobileWidth="85vw"
+        mobileTop="45%" mobileLeft="3720px" mobileHeight="72dvh" mobileWidth="85vw"
       
         onClick={() => handleImageClick(7)}
         sx={{ cursor: 'pointer' }}>
@@ -595,9 +596,9 @@ const KaboaGallery = ({ onBack }) => {
       {/* Image 9 */}
       <ImageItem
         ref={el => imageRefs.current[8] = el}
-        top="50%" left="7100px" height="80vh" width="auto" zIndex={2}
+        top="50%" left="7100px" height="80dvh" width="auto" zIndex={2}
         isVisible={visibleImages[8] !== false}
-        mobileTop="35%" mobileLeft="4140px" mobileHeight="67vh" mobileWidth="180vw"
+        mobileTop="35%" mobileLeft="4140px" mobileHeight="67dvh" mobileWidth="180vw"
       
         onClick={() => handleImageClick(8)}
         sx={{ cursor: 'pointer' }}>

@@ -102,7 +102,7 @@ const ScrollProgressBar = styled(Box)({
 const GalleryContainer = styled(Box)(({ theme }) => ({
   backgroundColor: galleryTheme.main,
   width: '100vw',
-  height: '100vh',
+  height: '100dvh',
   position: 'relative',
   overflowX: 'auto',
   overflowY: 'hidden',
@@ -119,8 +119,8 @@ const GalleryContainer = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
     overflowX: 'auto', // Changed from 'hidden' to 'auto' to allow horizontal scrolling on mobile
     overflowY: 'hidden', // Changed from 'auto' to 'hidden' to prevent vertical scrolling on mobile
-    height: '100vh', // Keep same height as desktop
-    minHeight: '100vh',
+    height: '100dvh', // Keep same height as desktop
+    minHeight: '100dvh',
   }
 }));
 
@@ -173,7 +173,8 @@ const ImageItem = styled(Box, {
   willChange: 'transform, opacity',
   backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
@@ -234,7 +235,6 @@ const VideoFrame = styled(Box, {
   border: `1px solid ${galleryTheme.text}`,
   borderRadius: '2px',
   padding: '0',
-  boxShadow: `0 0 15px ${galleryTheme.highlight}33`,
   overflow: 'hidden',
   background: galleryTheme.text,
   backfaceVisibility: 'hidden', // GPU optimization
@@ -251,6 +251,13 @@ const VideoFrame = styled(Box, {
     height: mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.9}vh` : `${parseInt(height) * 0.7}px`) : height),
     boxShadow: 'none', // Sin sombras en móvil
     border: `1px solid ${galleryTheme.text}`, // Mantener el borde
+    aspectRatio: '9 / 16', // Igual al video para no recortar el borde blanco de los costados
+    '& video': {
+      display: 'block',
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain',
+    },
   },
 }));
 
@@ -495,7 +502,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[0] = el}
         top="50%"
         left="450px"
-        height="85vh"
+        height="85dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[0] !== false}
@@ -505,7 +512,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="45%"
         mobileLeft="270px"
-        mobileHeight="76vh"
+        mobileHeight="76dvh"
         mobileWidth="100vw" // Ancho relativo al viewport - aproximadamente 35% del ancho de pantalla
       >
         <Box component="img" src={images.M1} alt="MAISON 1" loading="eager" />
@@ -516,7 +523,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[1] = el}
         top="25%"
         left="1300px"
-        height="55vh"
+        height="55dvh"
         width="auto" // Añadido width original para referencia
         zIndex={3}
         isVisible={visibleImages[1] !== false}
@@ -526,7 +533,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="25%"
         mobileLeft="780px"
-        mobileHeight="49vh"
+        mobileHeight="49dvh"
         mobileWidth="65vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
       >
         <Box component="img" src={images.M2} alt="MAISON 2" loading="eager" />
@@ -536,7 +543,7 @@ const MaisonGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[2] = el}
         left="1550px"
-        height="100vh"
+        height="100dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[2] !== false}
@@ -545,8 +552,8 @@ const MaisonGallery = ({ onBack }) => {
         sx={{ cursor: 'pointer' }}
         // Ajustes específicos para móvil
         mobileLeft="930px"
-        mobileHeight="90vh"
-        mobileWidth="75vh" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
+        mobileHeight="90dvh"
+        mobileWidth="75dvh" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
       >
         <Box component="img" src={images.M3} alt="MAISON 3" loading="eager" />
       </ImageItem>
@@ -556,7 +563,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[3] = el}
         top="35%"
         left="2240px"
-        height="55vh"
+        height="55dvh"
         width="auto" // Añadido width original para referencia
         zIndex={3}
         isVisible={visibleImages[3] !== false}
@@ -566,7 +573,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="35%"
         mobileLeft="1344px"
-        mobileHeight="49vh"
+        mobileHeight="49dvh"
         mobileWidth="70vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
       >
         <Box component="img" src={images.M4} alt="MAISON 4" loading="eager" />
@@ -577,7 +584,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[4] = el}
         top="70%"
         left="2110px"
-        height="120vh"
+        height="120dvh"
         width="auto" // Añadido width original para referencia
         zIndex={1}
         isVisible={visibleImages[4] !== false}
@@ -585,6 +592,7 @@ const MaisonGallery = ({ onBack }) => {
         sx={{
           transform: 'translateY(-50%) translateZ(0) rotate(35deg)',
           opacity: 0.1,
+          pointerEvents: 'none',
           '& img': {
             boxShadow: 'none',
             borderRadius: 0
@@ -593,10 +601,9 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="70%"
         mobileLeft="1266px"
-        mobileHeight="108vh"
+        mobileHeight="108dvh"
         mobileWidth="200vw" // Ancho relativo al viewport - aproximadamente 40% del ancho de pantalla (más grande por ser un fondo)
-      
-        onClick={() => handleImageClick(4)}>
+      >
         <Box component="img" src={images.M5} alt="MAISON 5" loading="eager" />
       </ImageItem>
 
@@ -605,7 +612,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[5] = el}
         top="50%"
         left="3500px"
-        height="70vh"
+        height="70dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[5] !== false}
@@ -614,7 +621,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2100px"
-        mobileHeight="63vh"
+        mobileHeight="63dvh"
         mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
       
         onClick={() => handleImageClick(5)}>
@@ -626,7 +633,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[6] = el}
         top="50%"
         left="4120px"
-        height="70vh"
+        height="70dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[6] !== false}
@@ -635,7 +642,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2472px"
-        mobileHeight="63vh"
+        mobileHeight="63dvh"
         mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
       
         onClick={() => handleImageClick(6)}>
@@ -647,7 +654,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[7] = el}
         top="50%"
         left="4735px"
-        height="70vh"
+        height="70dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[7] !== false}
@@ -656,7 +663,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="50%"
         mobileLeft="2841px"
-        mobileHeight="63vh"
+        mobileHeight="63dvh"
         mobileWidth="90vw" // Ancho relativo al viewport - aproximadamente 30% del ancho de pantalla
       
         onClick={() => handleImageClick(7)}>
@@ -668,7 +675,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[8] = el}
         top="50%"
         left="5560px"
-        height="85vh"
+        height="85dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[8] !== false}
@@ -677,8 +684,8 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="45%"
         mobileLeft="3336px"
-        mobileHeight="75vh"
-        mobileWidth="80vw" // Ancho relativo al viewport - aproximadamente 37% del ancho de pantalla (ligeramente más grande por ser video)
+        mobileHeight="75dvh"
+        mobileWidth="auto" // Lo define el aspect-ratio 9:16 del video
       >
         <Box
           component="video"
@@ -696,7 +703,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[9] = el}
         top="41%"
         left="6340px"
-        height="55vh"
+        height="55dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[9] !== false}
@@ -705,7 +712,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="40%"
         mobileLeft="3804px"
-        mobileHeight="49vh"
+        mobileHeight="49dvh"
         mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 32% del ancho de pantalla
       
         onClick={() => handleImageClick(9)}>
@@ -717,7 +724,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[10] = el}
         top="124px"
         left="7020px"
-        height="55vh"
+        height="55dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[10] !== false}
@@ -725,7 +732,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="16%"
         mobileLeft="4212px"
-        mobileHeight="49vh"
+        mobileHeight="49dvh"
         mobileWidth="85vw" // Ancho relativo al viewport - aproximadamente 33% del ancho de pantalla
       
         onClick={() => handleImageClick(10)}
@@ -737,7 +744,7 @@ const MaisonGallery = ({ onBack }) => {
       <ImageItem
         ref={el => imageRefs.current[11] = el}
         left="8000px"
-        height="80vh"
+        height="80dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[11] !== false}
@@ -745,7 +752,7 @@ const MaisonGallery = ({ onBack }) => {
         // Ajustes específicos para móvil
         mobileTop="10%"
         mobileLeft="4800px"
-        mobileHeight="72vh"
+        mobileHeight="72dvh"
         mobileWidth="100vw" // Ancho relativo al viewport - aproximadamente 34% del ancho de pantalla
       
         onClick={() => handleImageClick(11)}
@@ -758,7 +765,7 @@ const MaisonGallery = ({ onBack }) => {
         ref={el => imageRefs.current[12] = el}
         top="50%"
         left="9000px"
-        height="100vh"
+        height="100dvh"
         width="auto" // Añadido width original para referencia
         zIndex={2}
         isVisible={visibleImages[12] !== false}

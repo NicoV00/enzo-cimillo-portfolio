@@ -1,20 +1,23 @@
 import React from 'react';
 import { useEffect, useRef, useState, lazy, Suspense, useCallback } from 'react';
-import { Routes, Route, useNavigate, useParams, Link } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import About1 from './components/About1';
 import Footer from './components/Footer';
 import OffCanvas from './components/OffCanvas';
-import { CircularProgress, Box } from '@mui/material';
+import { Box } from '@mui/material';
+import GalleryLoadingScreen from './components/Galleries/GalleryLoadingScreen';
 import { styled } from '@mui/material/styles';
 import IntroVideo from './components/IntroVideo';
-import CursorManager from './components/CursorManager';
 import ScreensaverBanner from './components/ScreensaverBanner';
 import { gsap } from 'gsap';
 import * as THREE from 'three';
 import MyWaySection from './components/MyWaySection';
 import { Analytics } from '@vercel/analytics/react';
 import MobileComingSoon from './components/MobileComingSoon';
+import LegalPage from './components/LegalPage';
+import galleryColors from './components/utils/galleryColors';
+import { setPageBase } from './components/utils/pageTint';
 
 // Lazy loaded galleries
 const AnaLivniGallery = lazy(() => import('./components/Galleries/AnaLivniGallery'));
@@ -30,6 +33,8 @@ const MarcosGallery = lazy(() => import('./components/Galleries/MarcosGallery'))
 const PasarelaGallery = lazy(() => import('./components/Galleries/PasarelaGallery'));
 const IdentidadGallery = lazy(() => import('./components/Galleries/IdentidadGallery'));
 const EnzoGallery = lazy(() => import('./components/Galleries/EnzoGallery'));
+// Easter egg: solo se descarga cuando alguien lo activa
+const AuraMode = lazy(() => import('./components/Aura/AuraMode'));
 
 // Precarga
 import('./components/Galleries/BluaGallery');
@@ -121,8 +126,11 @@ const GlobalStyle = styled('style')({
 // Container for the entire app
 const ContainerCloud = styled(Box)({
   position: 'relative',
-  width: '100vw',
+  width: '100%',
+  // dvh = alto visible: con 100vh, en mobile el canvas quedaba más alto que la pantalla
+  // (barra del navegador) y la foto seleccionada bajaba hasta tapar el nombre
   height: '100vh',
+  '@supports (height: 100dvh)': { height: '100dvh' },
   opacity: 1,
 });
 
@@ -153,11 +161,21 @@ const Letter = styled('span')({
   marginRight: '0.5px'
 });
 
-// Project info container actualizado para usar colores del tema directamente
-const ProjectInfoContainer = styled(Box)(({ isVisible, textColor }) => ({
+// Place the caption just below the centered image, independently of the navigation.
+const nameBottom = (photoFrac) =>
+  `calc(${(0.5 - photoFrac / 2).toFixed(4)} * 100dvh - 48px)`;
+
+const ProjectInfoContainer = styled(Box, {
+  shouldForwardProp: (prop) => !['isVisible', 'textColor', 'photoFrac', 'liftFrac'].includes(prop),
+})(({ isVisible, textColor, photoFrac = 0.66, liftFrac = 0 }) => ({
   position: 'fixed',
-  bottom: '20px',
+  bottom: nameBottom(photoFrac),
+  '@media (max-width: 699px)': { bottom: `max(env(safe-area-inset-bottom, 0px), calc(${(0.5 - photoFrac / 2).toFixed(4)} * 100dvh - 58px))` },
   left: '50%',
+  display: 'flex',
+  alignItems: 'baseline',
+  gap: '10px',
+  whiteSpace: 'nowrap',
   textAlign: 'center',
   display: 'flex',
   alignItems: 'baseline',
@@ -170,7 +188,7 @@ const ProjectInfoContainer = styled(Box)(({ isVisible, textColor }) => ({
   fontSize: '16px',
   fontWeight: 'bold',
   letterSpacing: '0.5px',
-  lineHeight: '1.4',
+  lineHeight: 1,
   opacity: isVisible ? 1 : 0,
   transform: isVisible
     ? 'translateX(-50%) translateY(0)'
@@ -206,16 +224,7 @@ const GalleryWrapper = ({ onBack, slugToImage }) => {
   // Si no hay ID o queremos volver al carrusel
   if (!id) return null;
 
-  const loadingComponent = (
-    <Box sx={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh'
-    }}>
-      <CircularProgress />
-    </Box>
-  );
+  const loadingComponent = <GalleryLoadingScreen loading backgroundColor={galleryColors[id]?.main} textColor={galleryColors[id]?.text} />;
 
   switch (id) {
     case "ana-livni":
@@ -262,13 +271,13 @@ function App() {
   const lettersRef = useRef([]);
   const [showDiv, setShowDiv] = useState(false);
   const [index, setIndex] = useState('false');
-  const [isOffCanvasOpen, setIsOffCanvasOpen] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [collection, setCollection] = useState("");
   // Check sessionStorage to see if intro was already shown in this session
   const [showIntro, setShowIntro] = useState(() => {
     // Check if we are on a gallery route directly
-    const isGalleryRoute = window.location.pathname.startsWith('/gallery/');
+    // galerías y la página de privacidad abren directo, sin la intro
+    const isGalleryRoute = /^\/(gallery\/|privacy)/.test(window.location.pathname);
     const introShown = sessionStorage.getItem('introShown');
 
     if (isGalleryRoute) {
@@ -281,6 +290,16 @@ function App() {
   });
   const containerRef = useRef(null);
   const photographerNameRef = useRef(null);
+  // Visibilidad del nombre como estado (antes se ponía por ref y se perdía al re-montar)
+  const [nameVisible, setNameVisible] = useState(() => false);
+  // Sin intro (recarga en la misma sesión) el carrusel igual entra animado: la nav
+  // y el nombre esperan a que se asiente en vez de aparecer encima de la imagen
+  useEffect(() => {
+    if (showIntro) return;
+    const t = setTimeout(() => setNameVisible(true), 1100);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [bgColor, setBgColor] = useState('#ffffff');
   const glRef = useRef(null);
@@ -330,6 +349,17 @@ function App() {
   );
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Screensaver en blanco sobre proyectos oscuros (Maison, Pasarela…): fondo de la
+  // galería abierta o, en el carrusel, el del proyecto seleccionado
+  const gallerySlug = location.pathname.startsWith('/gallery/')
+    ? decodeURIComponent(location.pathname.split('/')[2] || '')
+    : null;
+  const screensaverBg = gallerySlug ? galleryColors[gallerySlug]?.main : themeColors?.main;
+  const screensaverText = screensaverBg && new THREE.Color(screensaverBg).getHSL({}).l < 0.35
+    ? '#ffffff'
+    : '#000000';
 
 
   // NUEVO: Detectar cambios en el tamaño de ventana
@@ -341,10 +371,6 @@ function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const handleOffCanvasState = (show) => {
-    setIsOffCanvasOpen(show);
-  };
 
   // CLEANUP: Clear all GSAP animations and resources on unmount
   useEffect(() => {
@@ -358,6 +384,26 @@ function App() {
       // sessionStorage will persist during navigation between projects
     };
   }, []);
+
+  // Barras de Safari iOS: en el mapa siguen el color del canvas (que anima al seleccionar)
+  const syncHomeTint = () => {
+    if (window.location.pathname.startsWith('/gallery/')) return;
+    setPageBase(`#${clearColor.current.getHexString()}`);
+  };
+
+  // En una galería: su color de fondo. Al volver al mapa: blanco (el canvas se recrea
+  // en blanco), así no queda pegado el color del proyecto anterior
+  useEffect(() => {
+    if (gallerySlug) {
+      gsap.killTweensOf(clearColor.current);
+      setPageBase(galleryColors[gallerySlug]?.main || '#ffffff');
+    } else {
+      gsap.killTweensOf(clearColor.current);
+      clearColor.current.set('#ffffff');
+      setBgColor('#ffffff');
+      setPageBase('#ffffff');
+    }
+  }, [gallerySlug]);
 
   // FIX: Manejo correcto del reset de color a blanco
   useEffect(() => {
@@ -382,6 +428,7 @@ function App() {
           if (glRef.current) {
             glRef.current.setClearColor(clearColor.current);
           }
+          syncHomeTint();
         },
       });
       return;
@@ -406,6 +453,7 @@ function App() {
           if (glRef.current) {
             glRef.current.setClearColor(clearColor.current);
           }
+          syncHomeTint();
         },
       });
     } else if (typeof bgColor === 'string') {
@@ -425,6 +473,7 @@ function App() {
           if (glRef.current) {
             glRef.current.setClearColor(clearColor.current);
           }
+          syncHomeTint();
         },
       });
     }
@@ -447,7 +496,6 @@ function App() {
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.style.display = 'block';
-      document.body.style.backgroundColor = 'white';
     }
 
     setScene3DReady(true);
@@ -479,6 +527,33 @@ function App() {
     setTimeout(() => setShowIntro(false), 450);
   }, []);
 
+  // ── Easter egg "aura": escribir "aura" o tocar 5 veces el nombre "enzo" ──
+  const [auraOpen, setAuraOpen] = useState(false);
+  const closeAura = useCallback(() => setAuraOpen(false), []);
+  const nameTaps = useRef([]);
+  const handleNameTap = useCallback(() => {
+    const now = performance.now();
+    nameTaps.current = [...nameTaps.current.filter((t) => now - t < 2500), now];
+    if (nameTaps.current.length >= 5) {
+      nameTaps.current = [];
+      setAuraOpen(true);
+    }
+  }, []);
+  useEffect(() => {
+    let typed = '';
+    const onKey = (e) => {
+      if (e.target.closest?.('input, textarea, [contenteditable="true"]')) return;
+      if (e.key.length !== 1) return;
+      typed = (typed + e.key.toLowerCase()).slice(-4);
+      if (typed === 'aura') {
+        typed = '';
+        setAuraOpen((open) => !open);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // Callback instantáneo para cuando el carrusel está listo
   const handleCarouselReady = () => {
     console.log("Carrusel listo para animación");
@@ -489,9 +564,7 @@ function App() {
     console.log("Transición completada");
     setInitialTransition(false);
 
-    if (photographerNameRef.current) {
-      photographerNameRef.current.style.opacity = '1';
-    }
+    setNameVisible(true);
 
     transitionInProgressRef.current = false;
   };
@@ -598,9 +671,11 @@ function App() {
   const renderHome = () => {
     return (
       <Canvas
+        // con aura abierto el carrusel queda tapado: no tiene sentido seguir dibujándolo
+        frameloop={auraOpen ? 'never' : 'always'}
         camera={{
           fov: 65,
-          position: [0, 0, 40],
+          position: [0, 0, 41],
         }}
         onCreated={({ gl }) => {
           gl.setClearColor("white");
@@ -639,11 +714,11 @@ function App() {
       <GlobalStyle />
 
       {/* Componente de cursor global (ahora inactivo) */}
-      <CursorManager isOffCanvasOpen={isOffCanvasOpen} />
 
       {/* SCREENSAVER BANNER ULTRA SMOOTH - 20 SEGUNDOS */}
       <ScreensaverBanner
         isActive={screensaverActive}
+        textColor={screensaverText}
         timeout={20000} // 20 SEGUNDOS exactos
         onDismiss={handleScreensaverDismiss}
         onInactivityChange={handleUserInactivity}
@@ -666,26 +741,33 @@ function App() {
         <Routes>
           <Route path="/" element={
             <>
-              {!isOffCanvasOpen && (
-                <PhotographerName
-                  className="photographer-name"
-                  ref={photographerNameRef}
-                >
-                  {photographerName.split('').map((letter, index) => (
-                    <Letter
-                      key={index}
-                      className="letter"
-                      ref={el => lettersRef.current[index] = el}
-                    >
-                      {letter}
-                    </Letter>
-                  ))}
-                </PhotographerName>
-              )}
+              {/* Siempre montado: con el menú abierto queda visible detrás del blur */}
+              <PhotographerName
+                className="photographer-name"
+                ref={photographerNameRef}
+                style={{ opacity: nameVisible ? 1 : 0 }}
+                onClick={handleNameTap}
+              >
+                {photographerName.split('').map((letter, index) => (
+                  <Letter
+                    key={index}
+                    className="letter"
+                    ref={el => lettersRef.current[index] = el}
+                  >
+                    {letter}
+                  </Letter>
+                ))}
+              </PhotographerName>
               {renderHome()}
+              {/* grano vivo sobre el fondo (pointer-events: none) */}
+              <div className="bg-grain" aria-hidden="true" />
+
+              {selectedProjectInfo && <span className="mobile-enter-hint" aria-hidden="true">tap to enter</span>}
 
               <ProjectInfoContainer
                 isVisible={!!selectedProjectInfo}
+                photoFrac={selectedProjectInfo?.photoFrac}
+                liftFrac={selectedProjectInfo?.liftFrac}
                 textColor={themeColors?.text || '#000000'}
               >
                 {selectedProjectInfo && (
@@ -704,13 +786,19 @@ function App() {
           <Route path="/gallery/:id" element={
             <GalleryWrapper onBack={handleBackToCarousel} slugToImage={slugToImage} />
           } />
+          <Route path="/privacy" element={<LegalPage />} />
         </Routes>
 
-        <Footer
-          onShowChange={handleOffCanvasState}
-          onGalleryToggle={null}
-        />
+        {/* Sin onShowChange: abrir/cerrar el menú no re-renderiza toda la App */}
+        {/* Entra junto con el nombre, cuando la imagen de la intro ya llegó al centro */}
+        {location.pathname === '/' && <Footer hidden={!nameVisible || !!selectedProjectInfo} />}
       </ContainerCloud>
+
+      {auraOpen && (
+        <Suspense fallback={null}>
+          <AuraMode onClose={closeAura} />
+        </Suspense>
+      )}
 
       {/* Vercel Analytics */}
       <Analytics />

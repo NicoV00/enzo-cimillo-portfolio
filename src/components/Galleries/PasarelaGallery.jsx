@@ -94,7 +94,7 @@ const GalleryContainer = styled(Box, {
   return {
     backgroundColor: bgColor,
     width: '100vw',
-    height: '100vh',
+    height: '100dvh',
     position: 'relative',
     overflowX: 'auto',
     overflowY: 'hidden',
@@ -112,8 +112,8 @@ const GalleryContainer = styled(Box, {
     [theme.breakpoints.down('sm')]: {
       overflowX: 'auto',
       overflowY: 'hidden',
-      height: '100vh',
-      minHeight: '100vh',
+      height: '100dvh',
+      minHeight: '100dvh',
     },
   };
 });
@@ -128,7 +128,7 @@ const GalleryContent = styled(Box)(({ theme }) => ({
   position: 'relative',
   transform: 'translateZ(0)',  // Force GPU acceleration
   [theme.breakpoints.down('sm')]: {
-    width: '5800px', // Reducido para móvil (aproximadamente 62% del desktop)
+    width: 'calc(5800 * 100dvh / 650)', // Reducido para móvil (aproximadamente 62% del desktop)
     flexDirection: 'row',
     height: '100%',
     padding: '20px', // Menos padding
@@ -159,16 +159,19 @@ const ImageItem = styled(Box, {
   top: isMobile ? mobileTop || top : top,
   left: isMobile ? mobileLeft || (left ? `${parseInt(left) * 0.6}px` : left) : left,
   width: isMobile ? mobileWidth || (width === 'auto' ? 'auto' : width ? `${parseInt(width) * 0.7}px` : width) : width,
-  height: isMobile ? mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.85}vh` : `${parseInt(height) * 0.7}px`) : height) : height,
+  height: isMobile ? mobileHeight || (height === 'auto' ? 'auto' : height ? (height.includes('vh') ? `${parseInt(height) * 0.85}dvh` : `${parseInt(height) * 0.7}px`) : height) : height,
   zIndex: zIndex,
   marginBottom: '0', // No margin needed with absolute positioning
   opacity: isVisible ? 1 : 0,
-  transform: 'translateZ(0)', // Solo GPU acceleration, sin animación de escala
+  // Mobile: el contenedor sí tiene alto, así que top % empujaba las fotos a la mitad
+  // de abajo (sobre la nav). Se centran en su top.
+  transform: isMobile ? 'translateY(-50%) translateZ(0)' : 'translateZ(0)',
   transition: 'opacity 0.5s ease', // Solo transición de opacidad
   willChange: 'opacity', // Solo opacidad cambiará
   backfaceVisibility: 'hidden', // GPU optimization
   '& img': {
-    width: '100%',
+    // width auto: el ancho sale de la proporción (Safari iOS estiraba con 100%)
+    width: !width || width === 'auto' ? 'auto' : '100%',
     height: '100%',
     objectFit: 'cover',
     borderRadius: '2px',
@@ -374,14 +377,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[0] = el}
         top="50%"
         left="0px"
-        height="100vh"
+        height="100dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[0] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="0px"
-        mobileHeight="85vh"
+        mobileLeft="calc(0 * 100dvh / 650)"
+        mobileHeight="85dvh"
       
         onClick={() => handleImageClick(0)}
         sx={{ cursor: 'pointer' }}>
@@ -393,14 +396,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[1] = el}
         top="50%"
         left="1900px"
-        height="80vh"
+        height="80dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[1] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="1140px"
-        mobileHeight="68vh"
+        mobileLeft="calc(1140 * 100dvh / 650)"
+        mobileHeight="68dvh"
       
         onClick={() => handleImageClick(1)}
         sx={{ cursor: 'pointer' }}>
@@ -412,14 +415,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[2] = el}
         top="40%"
         left="2800px"
-        height="40vh"
+        height="40dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[2] !== false}
         isMobile={isMobile}
         mobileTop="32%"
-        mobileLeft="1680px"
-        mobileHeight="34vh"
+        mobileLeft="calc(1680 * 100dvh / 650)"
+        mobileHeight="34dvh"
       
         onClick={() => handleImageClick(2)}
         sx={{ cursor: 'pointer' }}>
@@ -431,14 +434,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[3] = el}
         top="50%"
         left="3100px"
-        height="85vh"
+        height="85dvh"
         width="auto"
         zIndex={1}
         isVisible={visibleImages[3] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="1860px"
-        mobileHeight="72vh"
+        mobileLeft="calc(1860 * 100dvh / 650)"
+        mobileHeight="72dvh"
       
         onClick={() => handleImageClick(3)}
         sx={{ cursor: 'pointer' }}>
@@ -450,14 +453,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[4] = el}
         top="50%"
         left="3800px"
-        height="85vh"
+        height="85dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[4] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="2280px"
-        mobileHeight="72vh"
+        mobileLeft="calc(2280 * 100dvh / 650)"
+        mobileHeight="72dvh"
       
         onClick={() => handleImageClick(4)}
         sx={{ cursor: 'pointer' }}>
@@ -469,17 +472,15 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[5] = el}
         top="50%"
         left="4300px"
-        height="70vh"
+        height="70dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[5] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="2580px"
-        mobileHeight="60vh"
-      
-        onClick={() => handleImageClick(5)}
-        sx={{ cursor: 'pointer' }}>
+        mobileLeft="calc(2580 * 100dvh / 650)"
+        mobileHeight="60dvh"
+        sx={{ pointerEvents: 'none' }}>
         <Box component="img" src={images[5]} alt="PASARELA 6" loading="lazy" />
       </ImageItem>
 
@@ -488,14 +489,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[6] = el}
         top="63%"
         left="4600px"
-        height="55vh"
+        height="55dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[6] !== false}
         isMobile={isMobile}
         mobileTop="52%"
-        mobileLeft="2760px"
-        mobileHeight="47vh"
+        mobileLeft="calc(2760 * 100dvh / 650)"
+        mobileHeight="47dvh"
       
         onClick={() => handleImageClick(6)}
         sx={{ cursor: 'pointer' }}>
@@ -507,14 +508,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[7] = el}
         top="50%"
         left="5500px"
-        height="70vh"
+        height="70dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[7] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="3300px"
-        mobileHeight="60vh"
+        mobileLeft="calc(3300 * 100dvh / 650)"
+        mobileHeight="60dvh"
       
         onClick={() => handleImageClick(7)}
         sx={{ cursor: 'pointer' }}>
@@ -526,17 +527,15 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[8] = el}
         top="50%"
         left="6000px"
-        height="60vh"
+        height="60dvh"
         width="auto"
         zIndex={5}
         isVisible={visibleImages[8] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="3600px"
-        mobileHeight="51vh"
-      
-        onClick={() => handleImageClick(8)}
-        sx={{ cursor: 'pointer' }}>
+        mobileLeft="calc(3600 * 100dvh / 650)"
+        mobileHeight="51dvh"
+        sx={{ pointerEvents: 'none' }}>
         <Box component="img" src={images[8]} alt="PASARELA 9" loading="lazy" />
       </ImageItem>
 
@@ -545,14 +544,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[9] = el}
         top="50%"
         left="6000px"
-        height="70vh"
+        height="70dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[9] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="3600px"
-        mobileHeight="60vh"
+        mobileLeft="calc(3600 * 100dvh / 650)"
+        mobileHeight="60dvh"
       
         onClick={() => handleImageClick(9)}
         sx={{ cursor: 'pointer' }}>
@@ -564,14 +563,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[10] = el}
         top="50%"
         left="6515px"
-        height="70vh"
+        height="70dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[10] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="3909px"
-        mobileHeight="60vh"
+        mobileLeft="calc(3909 * 100dvh / 650)"
+        mobileHeight="60dvh"
       
         onClick={() => handleImageClick(10)}
         sx={{ cursor: 'pointer' }}>
@@ -583,14 +582,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[11] = el}
         top="50%"
         left="7400px"
-        height="100vh"
+        height="100dvh"
         width="auto"
         zIndex={3}
         isVisible={visibleImages[11] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="4440px"
-        mobileHeight="85vh"
+        mobileLeft="calc(4440 * 100dvh / 650)"
+        mobileHeight="85dvh"
       
         onClick={() => handleImageClick(11)}
         sx={{ cursor: 'pointer' }}>
@@ -602,14 +601,14 @@ const PasarelaGallery = ({ onBack }) => {
         ref={el => imageRefs.current[12] = el}
         top="50%"
         left="8500px"
-        height="85vh"
+        height="85dvh"
         width="auto"
         zIndex={2}
         isVisible={visibleImages[12] !== false}
         isMobile={isMobile}
         mobileTop="42%"
-        mobileLeft="5100px"
-        mobileHeight="72vh"
+        mobileLeft="calc(5100 * 100dvh / 650)"
+        mobileHeight="72dvh"
       
         onClick={() => handleImageClick(12)}
         sx={{ cursor: 'pointer' }}>

@@ -1,159 +1,34 @@
-import React, { useRef, useEffect } from 'react';
-import { Box } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
+import './GalleryLoadingScreen.css';
 
-// Custom font loading - Helvetica Bold
-const HelveticaBoldFontStyle = styled('style')({
-  '@font-face': {
-    fontFamily: 'Helvetica-Bold',
-    src: 'url("/fonts/Helvetica-Bold.ttf") format("truetype")',
-    fontWeight: 'bold',
-    fontStyle: 'normal',
-    fontDisplay: 'swap',
-  }
-});
+export default function GalleryLoadingScreen({ loading, loadProgress = 0, onAnimationComplete, backgroundColor = '#e6e6e6', textColor = '#000', progressColor = textColor }) {
+  const screenRef = useRef(null);
+  const completeRef = useRef(onAnimationComplete);
+  completeRef.current = onAnimationComplete;
+  const progress = Math.min(100, Math.max(0, loadProgress));
 
-// Loading screen
-const LoadingScreen = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  transition: 'opacity 0.5s ease-out',
-  overflow: 'hidden',
-}));
-
-// Título con la fuente Helvetica-Bold - SIN UPPERCASE
-const LoadingTitle = styled(Box)(({ theme }) => ({
-  fontFamily: '"Helvetica-Bold", "Arial Black", sans-serif',
-  fontSize: '30px', // Reducido de 60px a 45px
-  fontWeight: 'bold',
-  letterSpacing: '2px',
-  position: 'relative',
-  transform: 'translateY(100px)',
-  opacity: 0,
-  textAlign: 'center',
-  // Removido textTransform: 'uppercase'
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '38px', // Ajustado proporcionalmente
-    letterSpacing: '1.5px',
-  },
-}));
-
-
-
-// Barra de progreso minimalista
-const ProgressBarContainer = styled(Box)({
-  width: '150px',
-  height: '2px',
-  backgroundColor: 'rgba(128, 128, 128, 0.3)', // Color más neutro para el fondo
-  borderRadius: '0',
-  overflow: 'hidden',
-  position: 'relative',
-  marginBottom: '20px',
-});
-
-const ProgressBarFill = styled(Box)(({ progress }) => ({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: `${progress}%`,
-  height: '100%',
-  borderRadius: '0',
-  transition: 'width 0.2s ease-out',
-  // backgroundColor se aplicará via sx prop
-}));
-
-const GalleryLoadingScreen = ({ 
-  title, 
-  loading, 
-  loadProgress = 0,
-  onAnimationComplete,
-  backgroundColor = '#e6e6e6',
-  textColor = '#000000',
-  progressColor = '#000000'
-}) => {
-  const titleRef = useRef(null);
-  const loadingScreenRef = useRef(null);
-
-  // Loading screen title and year animation effect
   useEffect(() => {
-    if (!loading) return;
-    
-    if (titleRef.current) {
-      gsap.to(titleRef.current, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        delay: 0.3,
-      });
-    }
-    
-    return () => {
-      gsap.killTweensOf(titleRef.current);
-    };
-  }, [loading]);
-  
-  // Handle loading complete animation
-  useEffect(() => {
-    if (loadProgress >= 100 && loading) {
-      if (titleRef.current && loadingScreenRef.current) {
-        gsap.to([titleRef.current], {
-          y: -100,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power2.in",
-          stagger: 0.1,
-          onComplete: () => {
-            gsap.to(loadingScreenRef.current, {
-              opacity: 0,
-              duration: 0.5,
-              delay: 0.2,
-              onComplete: onAnimationComplete
-            });
-          }
-        });
-      } else {
-        setTimeout(onAnimationComplete, 500);
-      }
-    }
-  }, [loadProgress, loading, onAnimationComplete]);
+    if (!loading || progress < 100) return;
+    const tween = gsap.to(screenRef.current, {
+      opacity: 0,
+      duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 0.24,
+      delay: 0.15,
+      onComplete: () => completeRef.current?.(),
+    });
+    return () => tween.kill();
+  }, [loading, progress]);
 
   if (!loading) return null;
-
   return (
-    <>
-      <HelveticaBoldFontStyle />
-      
-      <LoadingScreen 
-        ref={loadingScreenRef}
-        sx={{ backgroundColor }} // Usa el color de fondo pasado como prop
-      >
-        <LoadingTitle 
-          ref={titleRef}
-          sx={{ color: textColor }} // Usa el color de texto pasado como prop
-        >
-          {title} {/* Mantiene el texto como se pasa, sin uppercase */}
-        </LoadingTitle>
-        
-        
-        <ProgressBarContainer>
-          <ProgressBarFill 
-            progress={loadProgress}
-            sx={{ backgroundColor: progressColor }} // Usa el color de progreso pasado como prop
-          />
-        </ProgressBarContainer>
-      </LoadingScreen>
-    </>
+    <div ref={screenRef} className="gallery-loading" style={{ backgroundColor, color: textColor }} role="status" aria-label="Loading images">
+      <div className="gallery-loading__pill">
+        <svg className="gallery-loading__mark" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5" /><circle cx="12" cy="12" r="3" /></svg>
+        <div className="gallery-loading__track" role="progressbar" aria-label="Loading images" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)}>
+          <span style={{ transform: `scaleX(${progress / 100})`, backgroundColor: progressColor }} />
+        </div>
+        <span className="gallery-loading__count" aria-hidden="true">{String(Math.round(progress)).padStart(2, '0')}</span>
+      </div>
+    </div>
   );
-};
-
-export default GalleryLoadingScreen;
+}

@@ -1,37 +1,5 @@
-import React from 'react';
-import { Box, styled } from '@mui/material';
-import OffCanvas from './OffCanvas';
+import BottomNav from './BottomNav';
 
-// Container con la posición original exacta
-const FooterContainer = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  bottom: '5px',
-  right: '5px',
-  zIndex: 100,
-  padding: '10px',
-  
-  // Responsive styles - mantener los originales
-  [theme.breakpoints.down('sm')]: {
-    padding: '6px',
-  },
-  
-  // Extra small screens
-  '@media (max-width: 480px)': {
-    bottom: '14px',
-    right: '14px',
-    '& .MuiButton-root': {
-      padding: '9px 17px',
-      fontSize: '20px',
-    },
-  }
-}));
-
-const Footer = ({ onShowChange }) => {
-  return (
-    <FooterContainer>
-      <OffCanvas onShowChange={onShowChange} />
-    </FooterContainer>
-  );
-};
+const Footer = ({ onShowChange, hidden }) => <BottomNav onShowChange={onShowChange} hidden={hidden} />;
 
 export default Footer;

@@ -1,0 +1,14 @@
+.gallery-loading { position: fixed; inset: 0; height: 100dvh; z-index: 9999; display: grid; place-items: center; }
+.gallery-loading__pill { display: flex; align-items: center; gap: 18px; padding: 16px 22px; border-radius: 999px; background: color-mix(in srgb, currentColor 6%, transparent); }
+.gallery-loading__mark { font-family: 'Inter Tight Variable', Helvetica, sans-serif; font-size: 24px; font-weight: 650; letter-spacing: -.08em; line-height: 1; }
+.gallery-loading__track { width: 100px; height: 3px; border-radius: 999px; background: color-mix(in srgb, currentColor 15%, transparent); overflow: hidden; }
+.gallery-loading__track span { display: block; width: 100%; height: 100%; transform-origin: left; transition: transform 180ms ease-out; }
+.gallery-loading__count { font: 11px 'PP Fraktion Mono', monospace; font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; }
+@media (prefers-reduced-motion: reduce) { .gallery-loading__track span { transition: none; } }
+
+@media (max-width: 699px) {
+  .gallery-loading__pill { gap: 20px; padding: 20px 26px; }
+  .gallery-loading__mark { width: 28px; height: 28px; }
+  .gallery-loading__track { width: clamp(120px, 38vw, 170px); height: 4px; }
+  .gallery-loading__count { font-size: 13px; }
+}
